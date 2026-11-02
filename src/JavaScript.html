@@ -1,38 +1,33 @@
 <script>
-  // Estado Global de la Aplicación
   let poleCounter = 0;
-  const polesData = new Map(); // Almacena estado de cada poste: { id, numero, fotos: [base64...] }
+  const polesData = new Map();
 
-  // Inicialización al cargar la ventana
-  document.addEventListener("DOMContentLoaded", () => {
-    // Establecer fecha de hoy por defecto
+  const svgPinJs = '<svg width="15" height="15" viewBox="0 0 24 24" fill="currentColor" style="vertical-align:middle; display:inline-block;"><path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5a2.5 2.5 0 0 1 0-5 2.5 2.5 0 0 1 0 5z"/></svg>';
+  const svgTrashJs = '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:middle; display:inline-block;"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path></svg>';
+  const svgCameraJs = '<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:middle; display:inline-block;"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"></path><circle cx="12" cy="13" r="4"></circle></svg>';
+  const svgGpsJs = '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:middle; display:inline-block;"><polygon points="12 2 19 21 12 17 5 21 12 2"></polygon></svg>';
+
+  document.addEventListener("DOMContentLoaded", function() {
     const today = new Date().toISOString().split("T")[0];
     document.getElementById("field-fecha").value = today;
 
-    // Agregar el primer poste automáticamente
     agregarPoste();
 
-    // Event listener del botón agregar poste
-    document.getElementById("btn-add-pole").addEventListener("click", () => {
+    document.getElementById("btn-add-pole").addEventListener("click", function() {
       agregarPoste();
     });
 
-    // Event listener del formulario de envío
-    document.getElementById("form-relevamiento").addEventListener("submit", (e) => {
+    document.getElementById("form-relevamiento").addEventListener("submit", function(e) {
       e.preventDefault();
       enviarRelevamiento();
     });
   });
 
-  /**
-   * Agrega dinámicamente una tarjeta de relevamiento de poste al contenedor.
-   */
   function agregarPoste() {
     poleCounter++;
     const poleId = "pole-" + Date.now() + "-" + Math.floor(Math.random() * 1000);
     const poleNumber = document.querySelectorAll(".pole-card").length + 1;
 
-    // Inicializar almacén en memoria para fotos de este poste
     polesData.set(poleId, {
       id: poleId,
       numero: poleNumber,
@@ -46,54 +41,58 @@
     poleCard.id = poleId;
     poleCard.dataset.poleId = poleId;
 
+    let deleteBtnHtml = "";
+    if (poleNumber > 1) {
+      deleteBtnHtml = '<button type="button" class="btn-remove-pole" onclick="eliminarPoste(\'' + poleId + '\')">' + svgTrashJs + ' <span>Eliminar</span></button>';
+    }
+
     poleCard.innerHTML = `
       <div class="pole-header">
-        <span class="pole-badge">📍 Poste #${poleNumber}</span>
-        ${poleNumber > 1 ? `<button type="button" class="btn-remove-pole" onclick="eliminarPoste('${poleId}')">🗑️ Eliminar</button>` : ""}
+        <span class="pole-badge">${svgPinJs} Poste #${poleNumber}</span>
+        ${deleteBtnHtml}
       </div>
 
-      <!-- Cantidad de Lámparas -->
       <div class="form-group">
-        <label class="form-label">Cantidad de Lámparas Conectadas <span class="required">*</span></label>
+        <label class="form-label">Cantidad de L&aacute;mparas Conectadas <span class="required">*</span></label>
         <div class="counter-box">
-          <button type="button" class="btn-counter" onclick="ajustarContador('${poleId}', -1)">−</button>
+          <button type="button" class="btn-counter" onclick="ajustarContador('${poleId}', -1)">-</button>
           <input type="number" class="form-input counter-input" id="${poleId}-lamparas" value="1" min="1" max="20" required>
           <button type="button" class="btn-counter" onclick="ajustarContador('${poleId}', 1)">+</button>
         </div>
       </div>
 
-      <!-- Tipo de Luminaria -->
       <div class="form-group">
-        <label class="form-label">Tipo / Tecnología de Luminaria <span class="required">*</span></label>
+        <label class="form-label">Tipo / Tecnolog&iacute;a de Luminaria <span class="required">*</span></label>
         <select class="form-select" id="${poleId}-tipo" required>
           <option value="LED" selected>LED (Eficiente)</option>
-          <option value="Sodio Alta Presion (SAP)">Sodio Alta Presión (SAP - Luz Naranja)</option>
-          <option value="Vapor de Mercurio">Vapor de Mercurio (Luz Blanca Antigua)</option>
-          <option value="Mezcladora">Lámpara Mezcladora</option>
+          <option value="Sodio Alta Presion (SAP)">Sodio Alta Presi&oacute;n (SAP - Luz Naranja)</option>
+          <option value="Vapor de Mercurio">Vapor de Mercurio (Luz Blanca)</option>
+          <option value="Mezcladora">L&aacute;mpara Mezcladora</option>
           <option value="Otro">Otra / No identificada</option>
         </select>
       </div>
 
-      <!-- Estado Operativo -->
       <div class="form-group">
-        <label class="form-label">Estado Operativo de las Lámparas <span class="required">*</span></label>
+        <label class="form-label">Estado Operativo de las L&aacute;mparas <span class="required">*</span></label>
         <select class="form-select" id="${poleId}-estado" required>
-          <option value="Todas Encienden" selected>✅ Todas Encienden Correctamente</option>
-          <option value="Apagada / Fuera de Servicio">❌ Apagada / Fuera de Servicio</option>
-          <option value="Enciende Parcialmente">⚠️ Enciende Parcialmente</option>
-          <option value="Titilando / Falla Balasto">⚡ Titilando / Parpadeo Intermitente</option>
-          <option value="Tulipa / Artefacto Roto">🛠️ Tulipa o Carcasa Dañada</option>
+          <option value="Todas Encienden" selected>Todas Encienden Correctamente</option>
+          <option value="Apagada / Fuera de Servicio">Apagada / Fuera de Servicio</option>
+          <option value="Enciende Parcialmente">Enciende Parcialmente</option>
+          <option value="Titilando / Falla Balasto">Titilando / Parpadeo Intermitente</option>
+          <option value="Tulipa / Artefacto Roto">Tulipa o Carcasa Da&ntilde;ada</option>
         </select>
       </div>
 
-      <!-- Bloque Geocatastral -->
       <div class="geo-box">
         <div class="geo-header">
-          <span style="font-weight:700; font-size:0.85rem; color:#0f172a;">📍 Ubicación Geocatastral</span>
+          <span style="font-weight:700; font-size:0.85rem; color:#0f172a; display:flex; align-items:center; gap:4px;">
+            ${svgPinJs} Ubicaci&oacute;n Geocatastral
+          </span>
           <span class="gps-status" id="${poleId}-gps-status">Sin capturar</span>
         </div>
         <button type="button" class="btn-gps" onclick="capturarGPS('${poleId}')">
-          <span>📡 Capturar GPS Actual</span>
+          <span>${svgGpsJs}</span>
+          <span>Capturar GPS Actual</span>
         </button>
         
         <div class="geo-coords-grid">
@@ -106,7 +105,7 @@
             <span class="val" id="${poleId}-val-lng">--</span>
           </div>
           <div class="geo-coord-item">
-            <span class="label">Precisión</span>
+            <span class="label">Precisi&oacute;n</span>
             <span class="val" id="${poleId}-val-acc">--</span>
           </div>
         </div>
@@ -117,58 +116,49 @@
         </div>
       </div>
 
-      <!-- Sección de Fotos (Hasta 3 fotos) -->
       <div class="photos-section">
-        <label class="form-label">Fotografías del Poste (Hasta 3 imágenes)</label>
+        <label class="form-label">Fotograf&iacute;as del Poste (Hasta 3 im&aacute;genes)</label>
         <div class="photos-grid">
-          <!-- Slot 1 -->
           <div class="photo-slot" id="${poleId}-slot-0" onclick="dispararCamara('${poleId}', 0)">
             <input type="file" id="${poleId}-file-0" accept="image/*" capture="environment" style="display:none" onchange="procesarFoto('${poleId}', 0, event)">
             <div class="photo-slot-placeholder" id="${poleId}-ph-0">
-              <span class="icon">📷</span>
+              <span class="icon">${svgCameraJs}</span>
               <span class="text">Foto 1</span>
             </div>
           </div>
 
-          <!-- Slot 2 -->
           <div class="photo-slot" id="${poleId}-slot-1" onclick="dispararCamara('${poleId}', 1)">
             <input type="file" id="${poleId}-file-1" accept="image/*" capture="environment" style="display:none" onchange="procesarFoto('${poleId}', 1, event)">
             <div class="photo-slot-placeholder" id="${poleId}-ph-1">
-              <span class="icon">📷</span>
+              <span class="icon">${svgCameraJs}</span>
               <span class="text">Foto 2</span>
             </div>
           </div>
 
-          <!-- Slot 3 -->
           <div class="photo-slot" id="${poleId}-slot-2" onclick="dispararCamara('${poleId}', 2)">
             <input type="file" id="${poleId}-file-2" accept="image/*" capture="environment" style="display:none" onchange="procesarFoto('${poleId}', 2, event)">
             <div class="photo-slot-placeholder" id="${poleId}-ph-2">
-              <span class="icon">📷</span>
+              <span class="icon">${svgCameraJs}</span>
               <span class="text">Foto 3</span>
             </div>
           </div>
         </div>
       </div>
 
-      <!-- Observaciones -->
       <div class="form-group" style="margin-top:14px; margin-bottom:0;">
         <label class="form-label">Observaciones Adicionales del Poste</label>
-        <input type="text" class="form-input" id="${poleId}-obs" placeholder="Ej: Poste de hormigón inclinado, ramas tocando línea, etc.">
+        <input type="text" class="form-input" id="${poleId}-obs" placeholder="Ej: Poste de hormig&oacute;n inclinado, ramas tocando l&iacute;nea, etc.">
       </div>
     `;
 
     container.appendChild(poleCard);
     actualizarResumenPostes();
 
-    // Scroll suave hacia la nueva tarjeta agregada
     if (poleNumber > 1) {
       poleCard.scrollIntoView({ behavior: "smooth", block: "start" });
     }
   }
 
-  /**
-   * Elimina un poste y renumera las tarjetas restantes.
-   */
   function eliminarPoste(poleId) {
     const card = document.getElementById(poleId);
     if (card) {
@@ -179,16 +169,13 @@
     }
   }
 
-  /**
-   * Ajusta secuencialmente los números y títulos de las tarjetas.
-   */
   function renumerarPostes() {
     const cards = document.querySelectorAll(".pole-card");
     cards.forEach((card, index) => {
       const num = index + 1;
       const badge = card.querySelector(".pole-badge");
       if (badge) {
-        badge.textContent = "📍 Poste #" + num;
+        badge.innerHTML = svgPinJs + " Poste #" + num;
       }
       const poleId = card.id;
       if (polesData.has(poleId)) {
@@ -197,17 +184,11 @@
     });
   }
 
-  /**
-   * Actualiza el contador inferior fijo de la aplicación.
-   */
   function actualizarResumenPostes() {
     const total = document.querySelectorAll(".pole-card").length;
     document.getElementById("summary-total-postes").textContent = total + (total === 1 ? " Poste" : " Postes");
   }
 
-  /**
-   * Incrementa o decrementa la cantidad de lámparas con control de límites.
-   */
   function ajustarContador(poleId, delta) {
     const input = document.getElementById(poleId + "-lamparas");
     if (input) {
@@ -217,9 +198,6 @@
     }
   }
 
-  /**
-   * Captura la posición satelital GPS utilizando la API nativa de geolocalización.
-   */
   function capturarGPS(poleId) {
     const statusElem = document.getElementById(poleId + "-gps-status");
     const valLat = document.getElementById(poleId + "-val-lat");
@@ -227,13 +205,13 @@
     const valAcc = document.getElementById(poleId + "-val-acc");
 
     if (!navigator.geolocation) {
-      statusElem.textContent = "❌ GPS no soportado";
+      statusElem.textContent = "GPS no soportado";
       statusElem.className = "gps-status error";
-      alert("La geolocalización no está soportada en este navegador o dispositivo.");
+      alert("La geolocalizacion no esta soportada en este navegador o dispositivo.");
       return;
     }
 
-    statusElem.textContent = "⏳ Obteniendo señal GPS...";
+    statusElem.textContent = "Obteniendo se\u00f1al GPS...";
     statusElem.className = "gps-status warn";
 
     const options = {
@@ -243,7 +221,7 @@
     };
 
     navigator.geolocation.getCurrentPosition(
-      (pos) => {
+      function(pos) {
         const lat = pos.coords.latitude;
         const lng = pos.coords.longitude;
         const acc = Math.round(pos.coords.accuracy);
@@ -252,15 +230,15 @@
         valLng.textContent = lng.toFixed(6);
         valAcc.textContent = acc + " m";
 
-        statusElem.textContent = `✅ Precisión: ±${acc}m`;
+        statusElem.textContent = "Precision: \u00b1" + acc + "m";
         statusElem.className = acc <= 15 ? "gps-status ok" : "gps-status warn";
 
         if (polesData.has(poleId)) {
           polesData.get(poleId).geo = { lat: lat, lng: lng, acc: acc };
         }
       },
-      (err) => {
-        statusElem.textContent = "❌ Error GPS: " + err.message;
+      function(err) {
+        statusElem.textContent = "Error GPS: " + err.message;
         statusElem.className = "gps-status error";
         console.warn("Error Geolocation:", err);
       },
@@ -268,28 +246,21 @@
     );
   }
 
-  /**
-   * Dispara el input file oculto para tomar la foto con la cámara nativa.
-   */
   function dispararCamara(poleId, slotIndex) {
-    const fileInput = document.getElementById(`${poleId}-file-${slotIndex}`);
+    const fileInput = document.getElementById(poleId + "-file-" + slotIndex);
     if (fileInput) {
       fileInput.click();
     }
   }
 
-  /**
-   * Procesa la imagen capturada, la comprime en un Canvas HTML5 y genera la miniatura.
-   */
   function procesarFoto(poleId, slotIndex, event) {
     const file = event.target.files[0];
     if (!file) return;
 
     const reader = new FileReader();
-    reader.onload = (e) => {
+    reader.onload = function(e) {
       const img = new Image();
-      img.onload = () => {
-        // Redimensionar para reducir peso sin perder nitidez de inspección
+      img.onload = function() {
         const MAX_DIM = 1280;
         let width = img.width;
         let height = img.height;
@@ -312,10 +283,8 @@
         const ctx = canvas.getContext("2d");
         ctx.drawImage(img, 0, 0, width, height);
 
-        // Compresión JPEG a 0.75 (~200KB a 350KB por imagen)
         const compressedBase64 = canvas.toDataURL("image/jpeg", 0.75);
 
-        // Guardar en el almacén de datos del poste
         if (polesData.has(poleId)) {
           polesData.get(poleId).fotos[slotIndex] = {
             base64: compressedBase64,
@@ -323,54 +292,42 @@
           };
         }
 
-        // Actualizar visualización en el Slot
-        const slot = document.getElementById(`${poleId}-slot-${slotIndex}`);
+        const slot = document.getElementById(poleId + "-slot-" + slotIndex);
         slot.classList.add("has-image");
-        slot.innerHTML = `
-          <img src="${compressedBase64}" class="photo-preview">
-          <button type="button" class="photo-delete-btn" onclick="eliminarFoto('${poleId}', ${slotIndex}, event)">✕</button>
-        `;
+        slot.innerHTML = '<img src="' + compressedBase64 + '" class="photo-preview">' +
+          '<button type="button" class="photo-delete-btn" onclick="eliminarFoto(\'' + poleId + '\', ' + slotIndex + ', event)">&times;</button>';
       };
       img.src = e.target.result;
     };
     reader.readAsDataURL(file);
   }
 
-  /**
-   * Elimina una foto previamente tomada y restaura el slot a su estado original.
-   */
   function eliminarFoto(poleId, slotIndex, event) {
     event.stopPropagation();
     if (polesData.has(poleId)) {
       polesData.get(poleId).fotos[slotIndex] = null;
     }
 
-    const slot = document.getElementById(`${poleId}-slot-${slotIndex}`);
+    const slot = document.getElementById(poleId + "-slot-" + slotIndex);
     slot.classList.remove("has-image");
-    slot.innerHTML = `
-      <input type="file" id="${poleId}-file-${slotIndex}" accept="image/*" capture="environment" style="display:none" onchange="procesarFoto('${poleId}', ${slotIndex}, event)">
-      <div class="photo-slot-placeholder" id="${poleId}-ph-${slotIndex}">
-        <span class="icon">📷</span>
-        <span class="text">Foto ${slotIndex + 1}</span>
-      </div>
-    `;
+    slot.innerHTML = '<input type="file" id="' + poleId + '-file-' + slotIndex + '" accept="image/*" capture="environment" style="display:none" onchange="procesarFoto(\'' + poleId + '\', ' + slotIndex + ', event)">' +
+      '<div class="photo-slot-placeholder" id="' + poleId + '-ph-' + slotIndex + '">' +
+      '<span class="icon">' + svgCameraJs + '</span>' +
+      '<span class="text">Foto ' + (slotIndex + 1) + '</span>' +
+      '</div>';
   }
 
-  /**
-   * Valida, estructura y envía el payload completo hacia el backend de Google Apps Script.
-   */
   function enviarRelevamiento() {
     const medidorInput = document.getElementById("field-medidor");
     const medidorVal = medidorInput.value.trim();
     if (!medidorVal) {
-      alert("Por favor ingrese el número del medidor instalado.");
+      alert("Por favor ingrese el numero del medidor instalado.");
       medidorInput.focus();
       return;
     }
 
     const fechaVal = document.getElementById("field-fecha").value;
 
-    // Recolectar lecturas multifunción
     const lecturas = {
       E: document.getElementById("field-e").value.trim(),
       EAR: document.getElementById("field-ear").value.trim(),
@@ -379,7 +336,6 @@
       ERT: document.getElementById("field-ert").value.trim()
     };
 
-    // Recolectar datos de todos los postes
     const cards = document.querySelectorAll(".pole-card");
     if (cards.length === 0) {
       alert("Debe agregar al menos un poste de luminaria para relevar.");
@@ -391,13 +347,12 @@
       const poleId = card.id;
       const memData = polesData.get(poleId) || {};
 
-      const lamparas = parseInt(document.getElementById(`${poleId}-lamparas`).value) || 1;
-      const tipo = document.getElementById(`${poleId}-tipo`).value;
-      const estado = document.getElementById(`${poleId}-estado`).value;
-      const catastro = document.getElementById(`${poleId}-catastro`).value.trim();
-      const obs = document.getElementById(`${poleId}-obs`).value.trim();
+      const lamparas = parseInt(document.getElementById(poleId + "-lamparas").value) || 1;
+      const tipo = document.getElementById(poleId + "-tipo").value;
+      const estado = document.getElementById(poleId + "-estado").value;
+      const catastro = document.getElementById(poleId + "-catastro").value.trim();
+      const obs = document.getElementById(poleId + "-obs").value.trim();
 
-      // Filtrar fotos no nulas
       const fotosValidas = (memData.fotos || []).filter(f => f !== null);
 
       postesArray.push({
@@ -424,19 +379,17 @@
 
     mostrarModalCarga("Comprimiendo y registrando relevamiento en Google Sheets y Drive...");
 
-    // Despacho a Google Apps Script
     if (typeof google !== "undefined" && google.script && google.script.run) {
       google.script.run
         .withSuccessHandler(onEnvioExitoso)
         .withFailureHandler(onEnvioFallido)
         .procesarRelevamiento(payload);
     } else {
-      // Modo Mock / Prueba Local en Navegador
       console.log("Payload generado listo para Apps Script:", payload);
-      setTimeout(() => {
+      setTimeout(function() {
         onEnvioExitoso({
           success: true,
-          message: "¡Simulación de prueba completada con éxito! (Modo Local)",
+          message: "\u00a1Simulacion de prueba completada con exito! (Modo Local)",
           totalPostes: postesArray.length,
           sheetUrl: "https://docs.google.com/spreadsheets/d/simulacion",
           folderUrl: "https://drive.google.com/drive/folders/simulacion"
@@ -456,13 +409,12 @@
   function onEnvioExitoso(resp) {
     document.getElementById("modal-spinner").classList.add("hidden");
     if (resp.success) {
-      document.getElementById("modal-title").textContent = "¡Carga Exitosa!";
-      document.getElementById("modal-msg").innerHTML = `
-        <strong>${resp.message}</strong><br><br>
-        Medidor: <strong>${document.getElementById("field-medidor").value}</strong><br>
-        Postes cargados: <strong>${resp.totalPostes}</strong><br><br>
-        <span style="font-size:0.8rem; color:#64748b;">Los datos fueron asentados en Google Sheets y las fotos en Google Drive de relevamientocontrolgestion@gmail.com</span>
-      `;
+      document.getElementById("modal-title").innerHTML = "&iexcl;Carga Exitosa!";
+      document.getElementById("modal-msg").innerHTML = 
+        "<strong>" + resp.message + "</strong><br><br>" +
+        "Medidor: <strong>" + document.getElementById("field-medidor").value + "</strong><br>" +
+        "Postes cargados: <strong>" + resp.totalPostes + "</strong><br><br>" +
+        '<span style="font-size:0.8rem; color:#64748b;">Los datos fueron asentados en Google Sheets y las fotos en Google Drive de relevamientocontrolgestion@gmail.com</span>';
       const btn = document.getElementById("modal-btn-action");
       btn.textContent = "Iniciar Nuevo Relevamiento";
       btn.onclick = reiniciarFormulario;
@@ -474,11 +426,11 @@
 
   function onEnvioFallido(error) {
     document.getElementById("modal-spinner").classList.add("hidden");
-    document.getElementById("modal-title").textContent = "⚠️ Error al Guardar";
-    document.getElementById("modal-msg").textContent = "Ocurrió un problema: " + (error.message || error);
+    document.getElementById("modal-title").textContent = "Error al Guardar";
+    document.getElementById("modal-msg").textContent = "Ocurrio un problema: " + (error.message || error);
     const btn = document.getElementById("modal-btn-action");
     btn.textContent = "Cerrar y Reintentar";
-    btn.onclick = () => {
+    btn.onclick = function() {
       document.getElementById("modal-overlay").classList.add("hidden");
     };
     btn.classList.remove("hidden");
@@ -495,4 +447,3 @@
     window.scrollTo({ top: 0, behavior: "smooth" });
   }
 </script>
-

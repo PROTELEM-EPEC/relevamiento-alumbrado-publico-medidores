@@ -1,9 +1,9 @@
-﻿<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="es">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-  <title>Relevamiento de Alumbrado PÃºblico - ConexiÃ³n Medidor</title>
+  <title>Relevamiento de Alumbrado P&uacute;blico - Conexi&oacute;n Medidor</title>
   <style>
   :root {
     --primary: #0284c7;
@@ -42,7 +42,6 @@
     padding-bottom: 90px;
   }
 
-  /* Header Superior */
   .app-header {
     background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%);
     color: #ffffff;
@@ -86,14 +85,12 @@
     margin-top: 8px;
   }
 
-  /* Contenedor Principal */
   .container {
     max-width: 680px;
     margin: 0 auto;
     padding: 16px;
   }
 
-  /* Tarjetas de SecciÃ³n */
   .card {
     background: #ffffff;
     border-radius: var(--radius-lg);
@@ -122,7 +119,6 @@
     gap: 8px;
   }
 
-  /* Form Controls */
   .form-group {
     margin-bottom: 14px;
   }
@@ -148,7 +144,7 @@
     color: var(--gray-800);
     background-color: #ffffff;
     transition: all 0.2s;
-    min-height: 48px; /* Touch target optimizado */
+    min-height: 48px;
   }
 
   .form-input:focus, .form-select:focus, .form-textarea:focus {
@@ -157,7 +153,6 @@
     box-shadow: 0 0 0 3px rgba(2, 132, 199, 0.15);
   }
 
-  /* Grid para lecturas multifunciÃ³n */
   .readings-grid {
     display: grid;
     grid-template-columns: repeat(2, 1fr);
@@ -194,7 +189,6 @@
     display: block;
   }
 
-  /* Tarjeta de Poste Individual */
   .pole-card {
     background: #ffffff;
     border-radius: var(--radius-lg);
@@ -262,7 +256,6 @@
     background: #fecaca;
   }
 
-  /* Control de Incremento NumÃ©rico (LÃ¡mparas) */
   .counter-box {
     display: flex;
     align-items: center;
@@ -296,7 +289,6 @@
     width: 80px;
   }
 
-  /* SecciÃ³n GPS y Geocatastro */
   .geo-box {
     background: #f8fafc;
     border: 1px solid #e2e8f0;
@@ -373,7 +365,6 @@
     color: var(--gray-800);
   }
 
-  /* SecciÃ³n de Fotos (Hasta 3 fotos) */
   .photos-section {
     margin-top: 14px;
   }
@@ -424,7 +415,6 @@
   }
 
   .photo-slot-placeholder .icon {
-    font-size: 1.5rem;
     margin-bottom: 2px;
     display: block;
   }
@@ -451,7 +441,6 @@
     cursor: pointer;
   }
 
-  /* BotÃ³n Agregar Poste */
   .btn-add-pole {
     width: 100%;
     background: #ffffff;
@@ -475,7 +464,6 @@
     background: var(--primary-light);
   }
 
-  /* Barra de AcciÃ³n Inferior Fija */
   .bottom-bar {
     position: fixed;
     bottom: 0;
@@ -538,7 +526,6 @@
     box-shadow: none;
   }
 
-  /* Modal de Carga y Ã‰xito */
   .modal-overlay {
     position: fixed;
     top: 0;
@@ -615,20 +602,19 @@
     display: none !important;
   }
 </style>
-
 </head>
 <body>
 
-  <!-- Cabecera de la AplicaciÃ³n -->
+  <!-- Cabecera de la Aplicacion -->
   <header class="app-header">
     <div class="header-content">
       <div class="app-title">
-        <span>âš¡</span>
-        <span>Relevamiento Alumbrado PÃºblico</span>
+        <span><svg width="20" height="20" viewBox="0 0 24 24" fill="#f59e0b" style="vertical-align:middle; display:inline-block;"><path d="M13 2L3 14h7v8l11-14h-8l1-6z"/></svg></span>
+        <span>Relevamiento Alumbrado P&uacute;blico</span>
       </div>
-      <div class="app-subtitle">Control de GestiÃ³n & ConexiÃ³n a Medidores de Alumbrado</div>
+      <div class="app-subtitle">Control de Gesti&oacute;n &amp; Conexi&oacute;n a Medidores de Alumbrado</div>
       <div class="account-badge">
-        <span>ðŸ‘¤ Cuenta:</span>
+        <span><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:middle; display:inline-block;"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg> Cuenta:</span>
         <strong>relevamientocontrolgestion@gmail.com</strong>
       </div>
     </div>
@@ -638,11 +624,11 @@
   <main class="container">
     <form id="form-relevamiento">
 
-      <!-- SECCIÃ“N 1: DATOS DEL MEDIDOR Y LECTURAS -->
+      <!-- SECCION 1: DATOS DEL MEDIDOR Y LECTURAS -->
       <section class="card">
         <div class="card-header">
           <h2 class="card-title">
-            <span>ðŸ“‹</span>
+            <span><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#0284c7" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:middle; display:inline-block;"><path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"></path><rect x="8" y="2" width="8" height="4" rx="1" ry="1"></rect></svg></span>
             <span>1. Datos del Medidor Instalado</span>
           </h2>
         </div>
@@ -653,70 +639,71 @@
         </div>
 
         <div class="form-group">
-          <label class="form-label" for="field-medidor">NÃºmero del Medidor Instalado <span class="required">*</span></label>
+          <label class="form-label" for="field-medidor">N&uacute;mero del Medidor Instalado <span class="required">*</span></label>
           <input type="text" inputmode="numeric" class="form-input" id="field-medidor" placeholder="Ej: 72677900 / 12345678" required>
         </div>
 
-        <!-- Lecturas MultifunciÃ³n -->
+        <!-- Lecturas Multifuncion -->
         <div class="form-group" style="margin-top: 18px;">
-          <label class="form-label" style="font-size: 0.9rem; color: #0284c7;">
-            âš¡ Lecturas del Medidor (Llenar campos correspondientes)
+          <label class="form-label" style="font-size: 0.9rem; color: #0284c7; display:flex; align-items:center; gap:6px;">
+            <span><svg width="20" height="20" viewBox="0 0 24 24" fill="#f59e0b" style="vertical-align:middle; display:inline-block;"><path d="M13 2L3 14h7v8l11-14h-8l1-6z"/></svg></span>
+            <span>Lecturas del Medidor (Llenar campos correspondientes)</span>
           </label>
           
           <div class="readings-grid">
             <!-- E: Activa Total -->
             <div class="reading-card">
               <span class="reading-code">E</span>
-              <span class="reading-desc">EnergÃ­a Activa Total (kWh)</span>
+              <span class="reading-desc">Energ&iacute;a Activa Total (kWh)</span>
               <input type="number" step="any" class="form-input" id="field-e" placeholder="Lectura Activa">
             </div>
 
             <!-- EAR: Activa Resto -->
             <div class="reading-card">
               <span class="reading-code">EAR</span>
-              <span class="reading-desc">EnergÃ­a Activa Resto (kWh)</span>
+              <span class="reading-desc">Energ&iacute;a Activa Resto (kWh)</span>
               <input type="number" step="any" class="form-input" id="field-ear" placeholder="Lectura Resto">
             </div>
 
             <!-- EAP: Activa Pico -->
             <div class="reading-card">
               <span class="reading-code">EAP</span>
-              <span class="reading-desc">EnergÃ­a Activa Pico (kWh)</span>
+              <span class="reading-desc">Energ&iacute;a Activa Pico (kWh)</span>
               <input type="number" step="any" class="form-input" id="field-eap" placeholder="Lectura Pico">
             </div>
 
             <!-- EAV: Activa Valle -->
             <div class="reading-card">
               <span class="reading-code">EAV</span>
-              <span class="reading-desc">EnergÃ­a Activa Valle (kWh)</span>
+              <span class="reading-desc">Energ&iacute;a Activa Valle (kWh)</span>
               <input type="number" step="any" class="form-input" id="field-eav" placeholder="Lectura Valle">
             </div>
 
             <!-- ERT: Reactiva Total -->
             <div class="reading-card" style="grid-column: span 2;">
               <span class="reading-code">ERT</span>
-              <span class="reading-desc">EnergÃ­a Reactiva Total (kVARh)</span>
+              <span class="reading-desc">Energ&iacute;a Reactiva Total (kVARh)</span>
               <input type="number" step="any" class="form-input" id="field-ert" placeholder="Lectura Reactiva">
             </div>
           </div>
         </div>
       </section>
 
-      <!-- SECCIÃ“N 2: MÃ“DULO SECUENCIAL DE POSTES DE LUMINARIAS -->
+      <!-- SECCION 2: MODULO SECUENCIAL DE POSTES DE LUMINARIAS -->
       <section>
         <div style="display:flex; justify-content:space-between; align-items:center; margin: 20px 4px 12px;">
           <h2 style="font-size: 1.1rem; font-weight: 700; color: #0f172a; display:flex; align-items:center; gap:8px;">
-            <span>ðŸ’¡</span>
+            <span><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#0284c7" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:middle; display:inline-block;"><path d="M9 18h6"></path><path d="M10 22h4"></path><path d="M12 2a7 7 0 0 0-7 7c0 2.38 1.19 4.47 3 5.74V17a1 1 0 0 0 1 1h6a1 1 0 0 0 1-1v-2.26c1.81-1.27 3-3.36 3-5.74a7 7 0 0 0-7-7z"></path></svg></span>
             <span>2. Relevamiento por Poste de Luminaria</span>
           </h2>
         </div>
 
-        <!-- Contenedor dinÃ¡mico donde se agregan los postes -->
+        <!-- Contenedor dinamico donde se agregan los postes -->
         <div id="postes-container"></div>
 
-        <!-- BotÃ³n para Agregar Poste Secuencialmente -->
+        <!-- Boton para Agregar Poste Secuencialmente -->
         <button type="button" class="btn-add-pole" id="btn-add-pole">
-          <span>âž•</span>
+          <span><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:middle; display:inline-block;"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg></span>
           <span>Agregar Relevamiento de Poste de Alumbrado</span>
         </button>
       </section>
@@ -724,7 +711,7 @@
     </form>
   </main>
 
-  <!-- Barra de AcciÃ³n Inferior Fija (Mobile-First) -->
+  <!-- Barra de Accion Inferior Fija (Mobile-First) -->
   <aside class="bottom-bar">
     <div class="bottom-bar-inner">
       <div class="counter-summary">
@@ -732,7 +719,7 @@
         <strong id="summary-total-postes">1 Poste</strong>
       </div>
       <button type="button" class="btn-submit" onclick="enviarRelevamiento()">
-        <span>ðŸ’¾</span>
+        <span><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:middle; display:inline-block;"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"></path><polyline points="17 21 17 13 7 13 7 21"></polyline><polyline points="7 3 7 8 15 8"></polyline></svg></span>
         <span>Guardar y Enviar</span>
       </button>
     </div>
@@ -743,46 +730,41 @@
     <div class="modal-card">
       <div class="spinner" id="modal-spinner"></div>
       <h3 class="modal-title" id="modal-title">Guardando Relevamiento</h3>
-      <p class="modal-msg" id="modal-msg">Enviando datos y fotografÃ­as a Google Drive y Sheets...</p>
+      <p class="modal-msg" id="modal-msg">Enviando datos y fotograf&iacute;as a Google Drive y Sheets...</p>
       <button type="button" class="btn-modal hidden" id="modal-btn-action">Aceptar</button>
     </div>
   </div>
 
   <script>
-  // Estado Global de la AplicaciÃ³n
   let poleCounter = 0;
-  const polesData = new Map(); // Almacena estado de cada poste: { id, numero, fotos: [base64...] }
+  const polesData = new Map();
 
-  // InicializaciÃ³n al cargar la ventana
-  document.addEventListener("DOMContentLoaded", () => {
-    // Establecer fecha de hoy por defecto
+  const svgPinJs = '<svg width="15" height="15" viewBox="0 0 24 24" fill="currentColor" style="vertical-align:middle; display:inline-block;"><path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5a2.5 2.5 0 0 1 0-5 2.5 2.5 0 0 1 0 5z"/></svg>';
+  const svgTrashJs = '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:middle; display:inline-block;"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path></svg>';
+  const svgCameraJs = '<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:middle; display:inline-block;"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"></path><circle cx="12" cy="13" r="4"></circle></svg>';
+  const svgGpsJs = '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:middle; display:inline-block;"><polygon points="12 2 19 21 12 17 5 21 12 2"></polygon></svg>';
+
+  document.addEventListener("DOMContentLoaded", function() {
     const today = new Date().toISOString().split("T")[0];
     document.getElementById("field-fecha").value = today;
 
-    // Agregar el primer poste automÃ¡ticamente
     agregarPoste();
 
-    // Event listener del botÃ³n agregar poste
-    document.getElementById("btn-add-pole").addEventListener("click", () => {
+    document.getElementById("btn-add-pole").addEventListener("click", function() {
       agregarPoste();
     });
 
-    // Event listener del formulario de envÃ­o
-    document.getElementById("form-relevamiento").addEventListener("submit", (e) => {
+    document.getElementById("form-relevamiento").addEventListener("submit", function(e) {
       e.preventDefault();
       enviarRelevamiento();
     });
   });
 
-  /**
-   * Agrega dinÃ¡micamente una tarjeta de relevamiento de poste al contenedor.
-   */
   function agregarPoste() {
     poleCounter++;
     const poleId = "pole-" + Date.now() + "-" + Math.floor(Math.random() * 1000);
     const poleNumber = document.querySelectorAll(".pole-card").length + 1;
 
-    // Inicializar almacÃ©n en memoria para fotos de este poste
     polesData.set(poleId, {
       id: poleId,
       numero: poleNumber,
@@ -796,54 +778,58 @@
     poleCard.id = poleId;
     poleCard.dataset.poleId = poleId;
 
+    let deleteBtnHtml = "";
+    if (poleNumber > 1) {
+      deleteBtnHtml = '<button type="button" class="btn-remove-pole" onclick="eliminarPoste(\'' + poleId + '\')">' + svgTrashJs + ' <span>Eliminar</span></button>';
+    }
+
     poleCard.innerHTML = `
       <div class="pole-header">
-        <span class="pole-badge">ðŸ“ Poste #${poleNumber}</span>
-        ${poleNumber > 1 ? `<button type="button" class="btn-remove-pole" onclick="eliminarPoste('${poleId}')">ðŸ—‘ï¸ Eliminar</button>` : ""}
+        <span class="pole-badge">${svgPinJs} Poste #${poleNumber}</span>
+        ${deleteBtnHtml}
       </div>
 
-      <!-- Cantidad de LÃ¡mparas -->
       <div class="form-group">
-        <label class="form-label">Cantidad de LÃ¡mparas Conectadas <span class="required">*</span></label>
+        <label class="form-label">Cantidad de L&aacute;mparas Conectadas <span class="required">*</span></label>
         <div class="counter-box">
-          <button type="button" class="btn-counter" onclick="ajustarContador('${poleId}', -1)">âˆ’</button>
+          <button type="button" class="btn-counter" onclick="ajustarContador('${poleId}', -1)">-</button>
           <input type="number" class="form-input counter-input" id="${poleId}-lamparas" value="1" min="1" max="20" required>
           <button type="button" class="btn-counter" onclick="ajustarContador('${poleId}', 1)">+</button>
         </div>
       </div>
 
-      <!-- Tipo de Luminaria -->
       <div class="form-group">
-        <label class="form-label">Tipo / TecnologÃ­a de Luminaria <span class="required">*</span></label>
+        <label class="form-label">Tipo / Tecnolog&iacute;a de Luminaria <span class="required">*</span></label>
         <select class="form-select" id="${poleId}-tipo" required>
           <option value="LED" selected>LED (Eficiente)</option>
-          <option value="Sodio Alta Presion (SAP)">Sodio Alta PresiÃ³n (SAP - Luz Naranja)</option>
-          <option value="Vapor de Mercurio">Vapor de Mercurio (Luz Blanca Antigua)</option>
-          <option value="Mezcladora">LÃ¡mpara Mezcladora</option>
+          <option value="Sodio Alta Presion (SAP)">Sodio Alta Presi&oacute;n (SAP - Luz Naranja)</option>
+          <option value="Vapor de Mercurio">Vapor de Mercurio (Luz Blanca)</option>
+          <option value="Mezcladora">L&aacute;mpara Mezcladora</option>
           <option value="Otro">Otra / No identificada</option>
         </select>
       </div>
 
-      <!-- Estado Operativo -->
       <div class="form-group">
-        <label class="form-label">Estado Operativo de las LÃ¡mparas <span class="required">*</span></label>
+        <label class="form-label">Estado Operativo de las L&aacute;mparas <span class="required">*</span></label>
         <select class="form-select" id="${poleId}-estado" required>
-          <option value="Todas Encienden" selected>âœ… Todas Encienden Correctamente</option>
-          <option value="Apagada / Fuera de Servicio">âŒ Apagada / Fuera de Servicio</option>
-          <option value="Enciende Parcialmente">âš ï¸ Enciende Parcialmente</option>
-          <option value="Titilando / Falla Balasto">âš¡ Titilando / Parpadeo Intermitente</option>
-          <option value="Tulipa / Artefacto Roto">ðŸ› ï¸ Tulipa o Carcasa DaÃ±ada</option>
+          <option value="Todas Encienden" selected>Todas Encienden Correctamente</option>
+          <option value="Apagada / Fuera de Servicio">Apagada / Fuera de Servicio</option>
+          <option value="Enciende Parcialmente">Enciende Parcialmente</option>
+          <option value="Titilando / Falla Balasto">Titilando / Parpadeo Intermitente</option>
+          <option value="Tulipa / Artefacto Roto">Tulipa o Carcasa Da&ntilde;ada</option>
         </select>
       </div>
 
-      <!-- Bloque Geocatastral -->
       <div class="geo-box">
         <div class="geo-header">
-          <span style="font-weight:700; font-size:0.85rem; color:#0f172a;">ðŸ“ UbicaciÃ³n Geocatastral</span>
+          <span style="font-weight:700; font-size:0.85rem; color:#0f172a; display:flex; align-items:center; gap:4px;">
+            ${svgPinJs} Ubicaci&oacute;n Geocatastral
+          </span>
           <span class="gps-status" id="${poleId}-gps-status">Sin capturar</span>
         </div>
         <button type="button" class="btn-gps" onclick="capturarGPS('${poleId}')">
-          <span>ðŸ“¡ Capturar GPS Actual</span>
+          <span>${svgGpsJs}</span>
+          <span>Capturar GPS Actual</span>
         </button>
         
         <div class="geo-coords-grid">
@@ -856,7 +842,7 @@
             <span class="val" id="${poleId}-val-lng">--</span>
           </div>
           <div class="geo-coord-item">
-            <span class="label">PrecisiÃ³n</span>
+            <span class="label">Precisi&oacute;n</span>
             <span class="val" id="${poleId}-val-acc">--</span>
           </div>
         </div>
@@ -867,58 +853,49 @@
         </div>
       </div>
 
-      <!-- SecciÃ³n de Fotos (Hasta 3 fotos) -->
       <div class="photos-section">
-        <label class="form-label">FotografÃ­as del Poste (Hasta 3 imÃ¡genes)</label>
+        <label class="form-label">Fotograf&iacute;as del Poste (Hasta 3 im&aacute;genes)</label>
         <div class="photos-grid">
-          <!-- Slot 1 -->
           <div class="photo-slot" id="${poleId}-slot-0" onclick="dispararCamara('${poleId}', 0)">
             <input type="file" id="${poleId}-file-0" accept="image/*" capture="environment" style="display:none" onchange="procesarFoto('${poleId}', 0, event)">
             <div class="photo-slot-placeholder" id="${poleId}-ph-0">
-              <span class="icon">ðŸ“·</span>
+              <span class="icon">${svgCameraJs}</span>
               <span class="text">Foto 1</span>
             </div>
           </div>
 
-          <!-- Slot 2 -->
           <div class="photo-slot" id="${poleId}-slot-1" onclick="dispararCamara('${poleId}', 1)">
             <input type="file" id="${poleId}-file-1" accept="image/*" capture="environment" style="display:none" onchange="procesarFoto('${poleId}', 1, event)">
             <div class="photo-slot-placeholder" id="${poleId}-ph-1">
-              <span class="icon">ðŸ“·</span>
+              <span class="icon">${svgCameraJs}</span>
               <span class="text">Foto 2</span>
             </div>
           </div>
 
-          <!-- Slot 3 -->
           <div class="photo-slot" id="${poleId}-slot-2" onclick="dispararCamara('${poleId}', 2)">
             <input type="file" id="${poleId}-file-2" accept="image/*" capture="environment" style="display:none" onchange="procesarFoto('${poleId}', 2, event)">
             <div class="photo-slot-placeholder" id="${poleId}-ph-2">
-              <span class="icon">ðŸ“·</span>
+              <span class="icon">${svgCameraJs}</span>
               <span class="text">Foto 3</span>
             </div>
           </div>
         </div>
       </div>
 
-      <!-- Observaciones -->
       <div class="form-group" style="margin-top:14px; margin-bottom:0;">
         <label class="form-label">Observaciones Adicionales del Poste</label>
-        <input type="text" class="form-input" id="${poleId}-obs" placeholder="Ej: Poste de hormigÃ³n inclinado, ramas tocando lÃ­nea, etc.">
+        <input type="text" class="form-input" id="${poleId}-obs" placeholder="Ej: Poste de hormig&oacute;n inclinado, ramas tocando l&iacute;nea, etc.">
       </div>
     `;
 
     container.appendChild(poleCard);
     actualizarResumenPostes();
 
-    // Scroll suave hacia la nueva tarjeta agregada
     if (poleNumber > 1) {
       poleCard.scrollIntoView({ behavior: "smooth", block: "start" });
     }
   }
 
-  /**
-   * Elimina un poste y renumera las tarjetas restantes.
-   */
   function eliminarPoste(poleId) {
     const card = document.getElementById(poleId);
     if (card) {
@@ -929,16 +906,13 @@
     }
   }
 
-  /**
-   * Ajusta secuencialmente los nÃºmeros y tÃ­tulos de las tarjetas.
-   */
   function renumerarPostes() {
     const cards = document.querySelectorAll(".pole-card");
     cards.forEach((card, index) => {
       const num = index + 1;
       const badge = card.querySelector(".pole-badge");
       if (badge) {
-        badge.textContent = "ðŸ“ Poste #" + num;
+        badge.innerHTML = svgPinJs + " Poste #" + num;
       }
       const poleId = card.id;
       if (polesData.has(poleId)) {
@@ -947,17 +921,11 @@
     });
   }
 
-  /**
-   * Actualiza el contador inferior fijo de la aplicaciÃ³n.
-   */
   function actualizarResumenPostes() {
     const total = document.querySelectorAll(".pole-card").length;
     document.getElementById("summary-total-postes").textContent = total + (total === 1 ? " Poste" : " Postes");
   }
 
-  /**
-   * Incrementa o decrementa la cantidad de lÃ¡mparas con control de lÃ­mites.
-   */
   function ajustarContador(poleId, delta) {
     const input = document.getElementById(poleId + "-lamparas");
     if (input) {
@@ -967,9 +935,6 @@
     }
   }
 
-  /**
-   * Captura la posiciÃ³n satelital GPS utilizando la API nativa de geolocalizaciÃ³n.
-   */
   function capturarGPS(poleId) {
     const statusElem = document.getElementById(poleId + "-gps-status");
     const valLat = document.getElementById(poleId + "-val-lat");
@@ -977,13 +942,13 @@
     const valAcc = document.getElementById(poleId + "-val-acc");
 
     if (!navigator.geolocation) {
-      statusElem.textContent = "âŒ GPS no soportado";
+      statusElem.textContent = "GPS no soportado";
       statusElem.className = "gps-status error";
-      alert("La geolocalizaciÃ³n no estÃ¡ soportada en este navegador o dispositivo.");
+      alert("La geolocalizacion no esta soportada en este navegador o dispositivo.");
       return;
     }
 
-    statusElem.textContent = "â³ Obteniendo seÃ±al GPS...";
+    statusElem.textContent = "Obteniendo se\u00f1al GPS...";
     statusElem.className = "gps-status warn";
 
     const options = {
@@ -993,7 +958,7 @@
     };
 
     navigator.geolocation.getCurrentPosition(
-      (pos) => {
+      function(pos) {
         const lat = pos.coords.latitude;
         const lng = pos.coords.longitude;
         const acc = Math.round(pos.coords.accuracy);
@@ -1002,15 +967,15 @@
         valLng.textContent = lng.toFixed(6);
         valAcc.textContent = acc + " m";
 
-        statusElem.textContent = `âœ… PrecisiÃ³n: Â±${acc}m`;
+        statusElem.textContent = "Precision: \u00b1" + acc + "m";
         statusElem.className = acc <= 15 ? "gps-status ok" : "gps-status warn";
 
         if (polesData.has(poleId)) {
           polesData.get(poleId).geo = { lat: lat, lng: lng, acc: acc };
         }
       },
-      (err) => {
-        statusElem.textContent = "âŒ Error GPS: " + err.message;
+      function(err) {
+        statusElem.textContent = "Error GPS: " + err.message;
         statusElem.className = "gps-status error";
         console.warn("Error Geolocation:", err);
       },
@@ -1018,28 +983,21 @@
     );
   }
 
-  /**
-   * Dispara el input file oculto para tomar la foto con la cÃ¡mara nativa.
-   */
   function dispararCamara(poleId, slotIndex) {
-    const fileInput = document.getElementById(`${poleId}-file-${slotIndex}`);
+    const fileInput = document.getElementById(poleId + "-file-" + slotIndex);
     if (fileInput) {
       fileInput.click();
     }
   }
 
-  /**
-   * Procesa la imagen capturada, la comprime en un Canvas HTML5 y genera la miniatura.
-   */
   function procesarFoto(poleId, slotIndex, event) {
     const file = event.target.files[0];
     if (!file) return;
 
     const reader = new FileReader();
-    reader.onload = (e) => {
+    reader.onload = function(e) {
       const img = new Image();
-      img.onload = () => {
-        // Redimensionar para reducir peso sin perder nitidez de inspecciÃ³n
+      img.onload = function() {
         const MAX_DIM = 1280;
         let width = img.width;
         let height = img.height;
@@ -1062,10 +1020,8 @@
         const ctx = canvas.getContext("2d");
         ctx.drawImage(img, 0, 0, width, height);
 
-        // CompresiÃ³n JPEG a 0.75 (~200KB a 350KB por imagen)
         const compressedBase64 = canvas.toDataURL("image/jpeg", 0.75);
 
-        // Guardar en el almacÃ©n de datos del poste
         if (polesData.has(poleId)) {
           polesData.get(poleId).fotos[slotIndex] = {
             base64: compressedBase64,
@@ -1073,54 +1029,42 @@
           };
         }
 
-        // Actualizar visualizaciÃ³n en el Slot
-        const slot = document.getElementById(`${poleId}-slot-${slotIndex}`);
+        const slot = document.getElementById(poleId + "-slot-" + slotIndex);
         slot.classList.add("has-image");
-        slot.innerHTML = `
-          <img src="${compressedBase64}" class="photo-preview">
-          <button type="button" class="photo-delete-btn" onclick="eliminarFoto('${poleId}', ${slotIndex}, event)">âœ•</button>
-        `;
+        slot.innerHTML = '<img src="' + compressedBase64 + '" class="photo-preview">' +
+          '<button type="button" class="photo-delete-btn" onclick="eliminarFoto(\'' + poleId + '\', ' + slotIndex + ', event)">&times;</button>';
       };
       img.src = e.target.result;
     };
     reader.readAsDataURL(file);
   }
 
-  /**
-   * Elimina una foto previamente tomada y restaura el slot a su estado original.
-   */
   function eliminarFoto(poleId, slotIndex, event) {
     event.stopPropagation();
     if (polesData.has(poleId)) {
       polesData.get(poleId).fotos[slotIndex] = null;
     }
 
-    const slot = document.getElementById(`${poleId}-slot-${slotIndex}`);
+    const slot = document.getElementById(poleId + "-slot-" + slotIndex);
     slot.classList.remove("has-image");
-    slot.innerHTML = `
-      <input type="file" id="${poleId}-file-${slotIndex}" accept="image/*" capture="environment" style="display:none" onchange="procesarFoto('${poleId}', ${slotIndex}, event)">
-      <div class="photo-slot-placeholder" id="${poleId}-ph-${slotIndex}">
-        <span class="icon">ðŸ“·</span>
-        <span class="text">Foto ${slotIndex + 1}</span>
-      </div>
-    `;
+    slot.innerHTML = '<input type="file" id="' + poleId + '-file-' + slotIndex + '" accept="image/*" capture="environment" style="display:none" onchange="procesarFoto(\'' + poleId + '\', ' + slotIndex + ', event)">' +
+      '<div class="photo-slot-placeholder" id="' + poleId + '-ph-' + slotIndex + '">' +
+      '<span class="icon">' + svgCameraJs + '</span>' +
+      '<span class="text">Foto ' + (slotIndex + 1) + '</span>' +
+      '</div>';
   }
 
-  /**
-   * Valida, estructura y envÃ­a el payload completo hacia el backend de Google Apps Script.
-   */
   function enviarRelevamiento() {
     const medidorInput = document.getElementById("field-medidor");
     const medidorVal = medidorInput.value.trim();
     if (!medidorVal) {
-      alert("Por favor ingrese el nÃºmero del medidor instalado.");
+      alert("Por favor ingrese el numero del medidor instalado.");
       medidorInput.focus();
       return;
     }
 
     const fechaVal = document.getElementById("field-fecha").value;
 
-    // Recolectar lecturas multifunciÃ³n
     const lecturas = {
       E: document.getElementById("field-e").value.trim(),
       EAR: document.getElementById("field-ear").value.trim(),
@@ -1129,7 +1073,6 @@
       ERT: document.getElementById("field-ert").value.trim()
     };
 
-    // Recolectar datos de todos los postes
     const cards = document.querySelectorAll(".pole-card");
     if (cards.length === 0) {
       alert("Debe agregar al menos un poste de luminaria para relevar.");
@@ -1141,13 +1084,12 @@
       const poleId = card.id;
       const memData = polesData.get(poleId) || {};
 
-      const lamparas = parseInt(document.getElementById(`${poleId}-lamparas`).value) || 1;
-      const tipo = document.getElementById(`${poleId}-tipo`).value;
-      const estado = document.getElementById(`${poleId}-estado`).value;
-      const catastro = document.getElementById(`${poleId}-catastro`).value.trim();
-      const obs = document.getElementById(`${poleId}-obs`).value.trim();
+      const lamparas = parseInt(document.getElementById(poleId + "-lamparas").value) || 1;
+      const tipo = document.getElementById(poleId + "-tipo").value;
+      const estado = document.getElementById(poleId + "-estado").value;
+      const catastro = document.getElementById(poleId + "-catastro").value.trim();
+      const obs = document.getElementById(poleId + "-obs").value.trim();
 
-      // Filtrar fotos no nulas
       const fotosValidas = (memData.fotos || []).filter(f => f !== null);
 
       postesArray.push({
@@ -1174,19 +1116,17 @@
 
     mostrarModalCarga("Comprimiendo y registrando relevamiento en Google Sheets y Drive...");
 
-    // Despacho a Google Apps Script
     if (typeof google !== "undefined" && google.script && google.script.run) {
       google.script.run
         .withSuccessHandler(onEnvioExitoso)
         .withFailureHandler(onEnvioFallido)
         .procesarRelevamiento(payload);
     } else {
-      // Modo Mock / Prueba Local en Navegador
       console.log("Payload generado listo para Apps Script:", payload);
-      setTimeout(() => {
+      setTimeout(function() {
         onEnvioExitoso({
           success: true,
-          message: "Â¡SimulaciÃ³n de prueba completada con Ã©xito! (Modo Local)",
+          message: "\u00a1Simulacion de prueba completada con exito! (Modo Local)",
           totalPostes: postesArray.length,
           sheetUrl: "https://docs.google.com/spreadsheets/d/simulacion",
           folderUrl: "https://drive.google.com/drive/folders/simulacion"
@@ -1206,13 +1146,12 @@
   function onEnvioExitoso(resp) {
     document.getElementById("modal-spinner").classList.add("hidden");
     if (resp.success) {
-      document.getElementById("modal-title").textContent = "Â¡Carga Exitosa!";
-      document.getElementById("modal-msg").innerHTML = `
-        <strong>${resp.message}</strong><br><br>
-        Medidor: <strong>${document.getElementById("field-medidor").value}</strong><br>
-        Postes cargados: <strong>${resp.totalPostes}</strong><br><br>
-        <span style="font-size:0.8rem; color:#64748b;">Los datos fueron asentados en Google Sheets y las fotos en Google Drive de relevamientocontrolgestion@gmail.com</span>
-      `;
+      document.getElementById("modal-title").innerHTML = "&iexcl;Carga Exitosa!";
+      document.getElementById("modal-msg").innerHTML = 
+        "<strong>" + resp.message + "</strong><br><br>" +
+        "Medidor: <strong>" + document.getElementById("field-medidor").value + "</strong><br>" +
+        "Postes cargados: <strong>" + resp.totalPostes + "</strong><br><br>" +
+        '<span style="font-size:0.8rem; color:#64748b;">Los datos fueron asentados en Google Sheets y las fotos en Google Drive de relevamientocontrolgestion@gmail.com</span>';
       const btn = document.getElementById("modal-btn-action");
       btn.textContent = "Iniciar Nuevo Relevamiento";
       btn.onclick = reiniciarFormulario;
@@ -1224,11 +1163,11 @@
 
   function onEnvioFallido(error) {
     document.getElementById("modal-spinner").classList.add("hidden");
-    document.getElementById("modal-title").textContent = "âš ï¸ Error al Guardar";
-    document.getElementById("modal-msg").textContent = "OcurriÃ³ un problema: " + (error.message || error);
+    document.getElementById("modal-title").textContent = "Error al Guardar";
+    document.getElementById("modal-msg").textContent = "Ocurrio un problema: " + (error.message || error);
     const btn = document.getElementById("modal-btn-action");
     btn.textContent = "Cerrar y Reintentar";
-    btn.onclick = () => {
+    btn.onclick = function() {
       document.getElementById("modal-overlay").classList.add("hidden");
     };
     btn.classList.remove("hidden");
@@ -1245,7 +1184,5 @@
     window.scrollTo({ top: 0, behavior: "smooth" });
   }
 </script>
-
 </body>
 </html>
-

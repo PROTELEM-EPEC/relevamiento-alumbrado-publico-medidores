@@ -1,29 +1,30 @@
 /**
  * ==============================================================================
- * SISTEMA DE RELEVAMIENTO DE ALUMBRADO PÚBLICO VINCULADO A MEDIDORES
+ * SISTEMA DE RELEVAMIENTO DE ALUMBRADO PUBLICO VINCULADO A MEDIDORES
  * Google Apps Script Web App - Backend
  * Cuenta: relevamientocontrolgestion@gmail.com
+ * Organizacion: PROTELEM-EPEC
  * ==============================================================================
  */
 
-// Constantes de configuración
+// Constantes de configuracion
 const NOMBRE_HOJA_CALCULO = "Relevamiento_Alumbrado_Publico";
 const NOMBRE_PESTANA = "Relevamientos_Plano";
 const NOMBRE_CARPETA_DRIVE = "Fotos_Relevamiento_Alumbrado";
 
 /**
- * Punto de entrada HTTP GET: Sirve la aplicación web responsiva para móviles.
+ * Punto de entrada HTTP GET: Sirve la aplicacion web responsiva para moviles.
  */
 function doGet(e) {
   const template = HtmlService.createTemplateFromFile("Index");
   return template.evaluate()
-    .setTitle("Relevamiento de Alumbrado Público - EPEC")
+    .setTitle("Relevamiento de Alumbrado Publico - EPEC")
     .addMetaTag("viewport", "width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no")
     .setXFrameOptionsMode(HtmlService.XFrameOptionsMode.ALLOWALL);
 }
 
 /**
- * Función auxiliar para incluir archivos HTML parciales si se utiliza estructura modular.
+ * Funcion auxiliar para incluir archivos HTML parciales si se utiliza estructura modular.
  */
 function include(filename) {
   return HtmlService.createHtmlOutputFromFile(filename).getContent();
@@ -45,7 +46,7 @@ function obtenerOCrearHojaCalculo() {
   let sheet = spreadsheet.getSheetByName(NOMBRE_PESTANA);
   if (!sheet) {
     sheet = spreadsheet.insertSheet(NOMBRE_PESTANA);
-    // Eliminar Sheet1 por defecto si existe y no es la única
+    // Eliminar Sheet1 por defecto si existe y no es la unica
     const sheets = spreadsheet.getSheets();
     for (let i = 0; i < sheets.length; i++) {
       if (sheets[i].getName() === "Hoja 1" || sheets[i].getName() === "Sheet1") {
@@ -95,7 +96,7 @@ function obtenerOCrearHojaCalculo() {
 }
 
 /**
- * Obtiene o crea la carpeta raíz en Google Drive para almacenar las fotos.
+ * Obtiene o crea la carpeta raiz en Google Drive para almacenar las fotos.
  */
 function obtenerOCrearCarpetaDrive() {
   const folders = DriveApp.getFoldersByName(NOMBRE_CARPETA_DRIVE);
@@ -106,7 +107,7 @@ function obtenerOCrearCarpetaDrive() {
 }
 
 /**
- * Obtiene o crea una subcarpeta específica para el relevamiento del medidor.
+ * Obtiene o crea una subcarpeta especifica para el relevamiento del medidor.
  */
 function obtenerSubcarpetaMedidor(carpetaRaiz, medidor, fecha) {
   const nombreSubcarpeta = "Medidor_" + medidor + "_" + fecha.replace(/-/g, "");
@@ -120,16 +121,16 @@ function obtenerSubcarpetaMedidor(carpetaRaiz, medidor, fecha) {
 /**
  * Procesa y registra el relevamiento completo enviado desde el formulario web.
  * @param {Object} data Datos estructurados con medidor, lecturas y array de postes.
- * @returns {Object} Respuesta con estado de éxito o error.
+ * @returns {Object} Respuesta con estado de exito o error.
  */
 function procesarRelevamiento(data) {
   try {
     if (!data || !data.medidor || !data.postes || !Array.isArray(data.postes) || data.postes.length === 0) {
-      throw new Error("Datos incompletos: se requiere número de medidor y al menos un poste relevado.");
+      throw new Error("Datos incompletos: se requiere numero de medidor y al menos un poste relevado.");
     }
 
     const lock = LockService.getScriptLock();
-    // Esperar hasta 30 segundos para evitar colisiones de escritura simultánea
+    // Esperar hasta 30 segundos para evitar colisiones de escritura simultanea
     lock.waitLock(30000);
 
     const sheetContext = obtenerOCrearHojaCalculo();
@@ -146,14 +147,13 @@ function procesarRelevamiento(data) {
       const idRegistro = Utilities.getUuid();
       const numPoste = p.numeroPoste || (i + 1);
 
-      // Procesamiento y guardado de imágenes en Google Drive
+      // Procesamiento y guardado de imagenes en Google Drive
       const fotoUrls = ["", "", ""];
       if (p.fotos && Array.isArray(p.fotos)) {
         for (let j = 0; j < Math.min(p.fotos.length, 3); j++) {
           const f = p.fotos[j];
           if (f && f.base64) {
             try {
-              // Limpiar data URI si viene presente
               let base64Data = f.base64;
               if (base64Data.indexOf("base64,") !== -1) {
                 base64Data = base64Data.split("base64,")[1];
@@ -166,7 +166,7 @@ function procesarRelevamiento(data) {
               const blob = Utilities.newBlob(decodedBytes, contentType, nombreArchivo);
               const driveFile = subcarpeta.createFile(blob);
               
-              // Habilitar visualización de la imagen por enlace
+              // Habilitar visualizacion de la imagen por enlace
               driveFile.setSharing(DriveApp.Access.ANYONE_WITH_LINK, DriveApp.Permission.VIEW);
               fotoUrls[j] = driveFile.getUrl();
             } catch (errFoto) {
@@ -176,7 +176,7 @@ function procesarRelevamiento(data) {
         }
       }
 
-      // Preparación de fila plana
+      // Preparacion de fila plana
       const fila = [
         idRegistro,
         timestampNow,
@@ -206,7 +206,7 @@ function procesarRelevamiento(data) {
       filasAInsertar.push(fila);
     }
 
-    // Escritura masiva en una sola operación atómica
+    // Escritura masiva en una sola operacion atomica
     if (filasAInsertar.length > 0) {
       const nextRow = sheet.getLastRow() + 1;
       const range = sheet.getRange(nextRow, 1, filasAInsertar.length, filasAInsertar[0].length);
@@ -217,7 +217,7 @@ function procesarRelevamiento(data) {
 
     return {
       success: true,
-      message: "¡Relevamiento registrado con éxito! Se cargaron " + totalPostes + " poste(s).",
+      message: "Relevamiento registrado con exito. Se cargaron " + totalPostes + " poste(s).",
       totalPostes: totalPostes,
       sheetUrl: sheetContext.spreadsheet.getUrl(),
       folderUrl: subcarpeta.getUrl()
@@ -232,7 +232,7 @@ function procesarRelevamiento(data) {
 }
 
 /**
- * Función de prueba para verificar conectividad y creación de componentes.
+ * Funcion de prueba para verificar conectividad y creacion de componentes.
  */
 function testCrearEstructura() {
   const sheetContext = obtenerOCrearHojaCalculo();
@@ -240,4 +240,3 @@ function testCrearEstructura() {
   Logger.log("Planilla creada en: " + sheetContext.spreadsheet.getUrl());
   Logger.log("Carpeta de Drive: " + folder.getUrl());
 }
-
