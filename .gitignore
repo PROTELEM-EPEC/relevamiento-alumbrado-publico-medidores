@@ -1,0 +1,9 @@
+# Entornos y temporales
+__pycache__/
+*.py[cod]
+*$py.class
+*.tmp
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db

@@ -1,0 +1,143 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>Relevamiento de Alumbrado Público - Conexión Medidor</title>
+  <?!= include('Styles'); ?>
+</head>
+<body>
+
+  <!-- Cabecera de la Aplicación -->
+  <header class="app-header">
+    <div class="header-content">
+      <div class="app-title">
+        <span>⚡</span>
+        <span>Relevamiento Alumbrado Público</span>
+      </div>
+      <div class="app-subtitle">Control de Gestión & Conexión a Medidores de Alumbrado</div>
+      <div class="account-badge">
+        <span>👤 Cuenta:</span>
+        <strong>relevamientocontrolgestion@gmail.com</strong>
+      </div>
+    </div>
+  </header>
+
+  <!-- Contenedor Principal del Formulario -->
+  <main class="container">
+    <form id="form-relevamiento">
+
+      <!-- SECCIÓN 1: DATOS DEL MEDIDOR Y LECTURAS -->
+      <section class="card">
+        <div class="card-header">
+          <h2 class="card-title">
+            <span>📋</span>
+            <span>1. Datos del Medidor Instalado</span>
+          </h2>
+        </div>
+
+        <div class="form-group">
+          <label class="form-label" for="field-fecha">Fecha de Relevamiento <span class="required">*</span></label>
+          <input type="date" class="form-input" id="field-fecha" required>
+        </div>
+
+        <div class="form-group">
+          <label class="form-label" for="field-medidor">Número del Medidor Instalado <span class="required">*</span></label>
+          <input type="text" inputmode="numeric" class="form-input" id="field-medidor" placeholder="Ej: 72677900 / 12345678" required>
+        </div>
+
+        <!-- Lecturas Multifunción -->
+        <div class="form-group" style="margin-top: 18px;">
+          <label class="form-label" style="font-size: 0.9rem; color: #0284c7;">
+            ⚡ Lecturas del Medidor (Llenar campos correspondientes)
+          </label>
+          
+          <div class="readings-grid">
+            <!-- E: Activa Total -->
+            <div class="reading-card">
+              <span class="reading-code">E</span>
+              <span class="reading-desc">Energía Activa Total (kWh)</span>
+              <input type="number" step="any" class="form-input" id="field-e" placeholder="Lectura Activa">
+            </div>
+
+            <!-- EAR: Activa Resto -->
+            <div class="reading-card">
+              <span class="reading-code">EAR</span>
+              <span class="reading-desc">Energía Activa Resto (kWh)</span>
+              <input type="number" step="any" class="form-input" id="field-ear" placeholder="Lectura Resto">
+            </div>
+
+            <!-- EAP: Activa Pico -->
+            <div class="reading-card">
+              <span class="reading-code">EAP</span>
+              <span class="reading-desc">Energía Activa Pico (kWh)</span>
+              <input type="number" step="any" class="form-input" id="field-eap" placeholder="Lectura Pico">
+            </div>
+
+            <!-- EAV: Activa Valle -->
+            <div class="reading-card">
+              <span class="reading-code">EAV</span>
+              <span class="reading-desc">Energía Activa Valle (kWh)</span>
+              <input type="number" step="any" class="form-input" id="field-eav" placeholder="Lectura Valle">
+            </div>
+
+            <!-- ERT: Reactiva Total -->
+            <div class="reading-card" style="grid-column: span 2;">
+              <span class="reading-code">ERT</span>
+              <span class="reading-desc">Energía Reactiva Total (kVARh)</span>
+              <input type="number" step="any" class="form-input" id="field-ert" placeholder="Lectura Reactiva">
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- SECCIÓN 2: MÓDULO SECUENCIAL DE POSTES DE LUMINARIAS -->
+      <section>
+        <div style="display:flex; justify-content:space-between; align-items:center; margin: 20px 4px 12px;">
+          <h2 style="font-size: 1.1rem; font-weight: 700; color: #0f172a; display:flex; align-items:center; gap:8px;">
+            <span>💡</span>
+            <span>2. Relevamiento por Poste de Luminaria</span>
+          </h2>
+        </div>
+
+        <!-- Contenedor dinámico donde se agregan los postes -->
+        <div id="postes-container"></div>
+
+        <!-- Botón para Agregar Poste Secuencialmente -->
+        <button type="button" class="btn-add-pole" id="btn-add-pole">
+          <span>➕</span>
+          <span>Agregar Relevamiento de Poste de Alumbrado</span>
+        </button>
+      </section>
+
+    </form>
+  </main>
+
+  <!-- Barra de Acción Inferior Fija (Mobile-First) -->
+  <aside class="bottom-bar">
+    <div class="bottom-bar-inner">
+      <div class="counter-summary">
+        <span>Postes relevados:</span>
+        <strong id="summary-total-postes">1 Poste</strong>
+      </div>
+      <button type="button" class="btn-submit" onclick="enviarRelevamiento()">
+        <span>💾</span>
+        <span>Guardar y Enviar</span>
+      </button>
+    </div>
+  </aside>
+
+  <!-- Modal de Carga y Resultados -->
+  <div class="modal-overlay hidden" id="modal-overlay">
+    <div class="modal-card">
+      <div class="spinner" id="modal-spinner"></div>
+      <h3 class="modal-title" id="modal-title">Guardando Relevamiento</h3>
+      <p class="modal-msg" id="modal-msg">Enviando datos y fotografías a Google Drive y Sheets...</p>
+      <button type="button" class="btn-modal hidden" id="modal-btn-action">Aceptar</button>
+    </div>
+  </div>
+
+  <?!= include('JavaScript'); ?>
+</body>
+</html>
+
