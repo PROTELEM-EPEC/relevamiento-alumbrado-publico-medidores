@@ -195,7 +195,7 @@
 
   function renumerarPostes() {
     var cards = document.querySelectorAll(".pole-card");
-    cards.forEach(function(card, index) {
+    cards.forEach(function (card, index) {
       var num = index + 1;
       var badge = card.querySelector(".pole-badge");
       if (badge) {
@@ -248,7 +248,7 @@
     };
 
     navigator.geolocation.getCurrentPosition(
-      function(pos) {
+      function (pos) {
         var lat = pos.coords.latitude;
         var lng = pos.coords.longitude;
         var acc = Math.round(pos.coords.accuracy);
@@ -264,7 +264,7 @@
           polesData.get(poleId).geo = { lat: lat, lng: lng, acc: acc };
         }
       },
-      function(err) {
+      function (err) {
         statusElem.textContent = "Error GPS: " + err.message;
         statusElem.className = "gps-status error";
         console.warn("Error Geolocation:", err);
@@ -285,9 +285,9 @@
     if (!file) return;
 
     var reader = new FileReader();
-    reader.onload = function(e) {
+    reader.onload = function (e) {
       var img = new Image();
-      img.onload = function() {
+      img.onload = function () {
         var MAX_DIM = 1280;
         var width = img.width;
         var height = img.height;
@@ -370,7 +370,7 @@
     }
 
     var postesArray = [];
-    cards.forEach(function(card, index) {
+    cards.forEach(function (card, index) {
       var poleId = card.id;
       var memData = polesData.get(poleId) || {};
 
@@ -380,7 +380,7 @@
       var catastro = document.getElementById(poleId + "-catastro").value.trim();
       var obs = document.getElementById(poleId + "-obs").value.trim();
 
-      var fotosValidas = (memData.fotos || []).filter(function(f) { return f !== null; });
+      var fotosValidas = (memData.fotos || []).filter(function (f) { return f !== null; });
 
       postesArray.push({
         numeroPoste: index + 1,
@@ -420,16 +420,16 @@
         headers: { "Content-Type": "text/plain;charset=utf-8" },
         body: JSON.stringify(payload)
       })
-      .then(function() {
-        onEnvioExitoso({
-          success: true,
-          message: "Relevamiento enviado correctamente a Google Drive y Sheets.",
-          totalPostes: postesArray.length
+        .then(function () {
+          onEnvioExitoso({
+            success: true,
+            message: "Relevamiento enviado correctamente a Google Drive y Sheets.",
+            totalPostes: postesArray.length
+          });
+        })
+        .catch(function (err) {
+          onEnvioFallido(err);
         });
-      })
-      .catch(function(err) {
-        onEnvioFallido(err);
-      });
     }
   }
 
@@ -445,7 +445,7 @@
     document.getElementById("modal-spinner").classList.add("hidden");
     if (resp.success) {
       document.getElementById("modal-title").innerHTML = "&iexcl;Carga Exitosa!";
-      document.getElementById("modal-msg").innerHTML = 
+      document.getElementById("modal-msg").innerHTML =
         "<strong>" + resp.message + "</strong><br><br>" +
         "Medidor: <strong>" + document.getElementById("field-medidor").value + "</strong><br>" +
         "Postes cargados: <strong>" + resp.totalPostes + "</strong><br><br>" +
@@ -465,7 +465,7 @@
     document.getElementById("modal-msg").textContent = "Ocurrio un problema: " + (error.message || error);
     var btn = document.getElementById("modal-btn-action");
     btn.textContent = "Cerrar y Reintentar";
-    btn.onclick = function() {
+    btn.onclick = function () {
       document.getElementById("modal-overlay").classList.add("hidden");
     };
     btn.classList.remove("hidden");

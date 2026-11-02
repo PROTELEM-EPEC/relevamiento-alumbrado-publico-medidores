@@ -5,10 +5,17 @@ Aplicación web móvil progresiva basada en **Google Apps Script Web App**, vinc
 ---
 
 ## 📌 Datos de la Cuenta y Destinos
+- **Estado**: ✅ **100% Operativo y Validado en Campo**
 - **Cuenta de Google**: `relevamientocontrolgestion@gmail.com`
-- **Base de Datos Tabular**: Google Sheets (`Relevamiento_Alumbrado_Publico` - Pestaña `Relevamientos_Plano`)
+- **Enlace Web App (Google Apps Script)**: [https://script.google.com/macros/s/AKfycbxVGx8m5z6aRxQG7CJBp403RGS4e7jhpi__3OMvVQkZ3a8guJDd5CUlf7uI53R4N3qB/exec](https://script.google.com/macros/s/AKfycbxVGx8m5z6aRxQG7CJBp403RGS4e7jhpi__3OMvVQkZ3a8guJDd5CUlf7uI53R4N3qB/exec)
+- **Enlace Web App (GitHub Pages - Sin inicio de sesión Google)**: [https://protelem-epec.github.io/relevamiento-alumbrado-publico-medidores/](https://protelem-epec.github.io/relevamiento-alumbrado-publico-medidores/)
+- **Base de Datos Tabular**: Google Sheets (`Relevamiento_Alumbrado_Publico` - Pestaña `Relevamientos_Plano`, 23 columnas)
 - **Almacenamiento Fotográfico**: Google Drive (`Fotos_Relevamiento_Alumbrado/Medidor_<id>_<fecha>/`)
 - **Protocolo de QA**: Triple QA (Técnico, Dominio EPEC/Regulación, UX Mobile)
+
+> [!NOTE]
+> **Resolución de Error Multi-cuenta Google (`/u/1/`)**:  
+> Al abrir en navegadores móviles con varias cuentas de Google, debe usarse siempre el enlace limpio canónico sin el prefijo `/u/1/` o `/u/6/`, o directamente la URL de **GitHub Pages**, evitando redireccionamientos y errores 404 de Google Drive.
 
 ---
 
