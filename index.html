@@ -1,0 +1,1238 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>Relevamiento de Alumbrado P&uacute;blico - Conexi&oacute;n Medidor</title>
+  <style>
+  :root {
+    --primary: #0284c7;
+    --primary-dark: #0369a1;
+    --primary-light: #e0f2fe;
+    --secondary: #0f172a;
+    --accent: #f59e0b;
+    --success: #10b981;
+    --danger: #ef4444;
+    --gray-50: #f8fafc;
+    --gray-100: #f1f5f9;
+    --gray-200: #e2e8f0;
+    --gray-300: #cbd5e1;
+    --gray-600: #475569;
+    --gray-700: #334155;
+    --gray-800: #1e293b;
+    --radius-md: 12px;
+    --radius-lg: 16px;
+    --shadow-sm: 0 1px 3px rgba(0,0,0,0.08);
+    --shadow-md: 0 4px 6px -1px rgba(0,0,0,0.1), 0 2px 4px -2px rgba(0,0,0,0.05);
+    --shadow-lg: 0 10px 15px -3px rgba(0,0,0,0.1), 0 4px 6px -4px rgba(0,0,0,0.05);
+  }
+
+  * {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+    -webkit-tap-highlight-color: transparent;
+  }
+
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    background-color: #f1f5f9;
+    color: var(--gray-800);
+    line-height: 1.5;
+    padding-bottom: 90px;
+  }
+
+  .app-header {
+    background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%);
+    color: #ffffff;
+    padding: 20px 16px 24px;
+    box-shadow: var(--shadow-md);
+    position: sticky;
+    top: 0;
+    z-index: 100;
+  }
+
+  .header-content {
+    max-width: 680px;
+    margin: 0 auto;
+  }
+
+  .app-title {
+    font-size: 1.25rem;
+    font-weight: 700;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    letter-spacing: -0.02em;
+  }
+
+  .app-subtitle {
+    font-size: 0.82rem;
+    color: #94a3b8;
+    margin-top: 4px;
+  }
+
+  .account-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    background: rgba(255, 255, 255, 0.1);
+    border: 1px solid rgba(255, 255, 255, 0.15);
+    padding: 4px 10px;
+    border-radius: 20px;
+    font-size: 0.75rem;
+    color: #cbd5e1;
+    margin-top: 8px;
+  }
+
+  .container {
+    max-width: 680px;
+    margin: 0 auto;
+    padding: 16px;
+  }
+
+  .card {
+    background: #ffffff;
+    border-radius: var(--radius-lg);
+    padding: 20px;
+    margin-bottom: 16px;
+    box-shadow: var(--shadow-sm);
+    border: 1px solid var(--gray-200);
+    transition: transform 0.15s ease, box-shadow 0.15s ease;
+  }
+
+  .card-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 16px;
+    padding-bottom: 10px;
+    border-bottom: 1px solid var(--gray-100);
+  }
+
+  .card-title {
+    font-size: 1.05rem;
+    font-weight: 700;
+    color: var(--secondary);
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+
+  .form-group {
+    margin-bottom: 14px;
+  }
+
+  .form-label {
+    display: block;
+    font-size: 0.85rem;
+    font-weight: 600;
+    color: var(--gray-700);
+    margin-bottom: 6px;
+  }
+
+  .form-label .required {
+    color: var(--danger);
+  }
+
+  .form-input, .form-select, .form-textarea {
+    width: 100%;
+    padding: 12px 14px;
+    border: 1.5px solid var(--gray-300);
+    border-radius: var(--radius-md);
+    font-size: 0.95rem;
+    color: var(--gray-800);
+    background-color: #ffffff;
+    transition: all 0.2s;
+    min-height: 48px;
+  }
+
+  .form-input:focus, .form-select:focus, .form-textarea:focus {
+    outline: none;
+    border-color: var(--primary);
+    box-shadow: 0 0 0 3px rgba(2, 132, 199, 0.15);
+  }
+
+  .readings-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 12px;
+  }
+
+  .readings-grid .form-group:first-child {
+    grid-column: span 2;
+  }
+
+  .reading-card {
+    background: var(--gray-50);
+    border: 1px solid var(--gray-200);
+    border-radius: var(--radius-md);
+    padding: 10px 12px;
+    position: relative;
+  }
+
+  .reading-code {
+    display: inline-block;
+    background: #0284c7;
+    color: #ffffff;
+    font-size: 0.72rem;
+    font-weight: 800;
+    padding: 2px 6px;
+    border-radius: 4px;
+    margin-bottom: 4px;
+  }
+
+  .reading-desc {
+    font-size: 0.73rem;
+    color: var(--gray-600);
+    margin-bottom: 6px;
+    display: block;
+  }
+
+  .pole-card {
+    background: #ffffff;
+    border-radius: var(--radius-lg);
+    padding: 20px;
+    margin-bottom: 16px;
+    box-shadow: var(--shadow-sm);
+    border: 2px solid var(--gray-200);
+    position: relative;
+    animation: slideDown 0.25s ease-out;
+  }
+
+  .pole-card.highlight {
+    border-color: var(--primary);
+  }
+
+  @keyframes slideDown {
+    from {
+      opacity: 0;
+      transform: translateY(-10px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+
+  .pole-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 16px;
+    padding-bottom: 12px;
+    border-bottom: 1.5px solid var(--gray-100);
+  }
+
+  .pole-badge {
+    background: linear-gradient(135deg, #0284c7 0%, #0369a1 100%);
+    color: #ffffff;
+    font-size: 0.9rem;
+    font-weight: 700;
+    padding: 6px 14px;
+    border-radius: 20px;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+  }
+
+  .btn-remove-pole {
+    background: #fee2e2;
+    color: var(--danger);
+    border: none;
+    border-radius: 8px;
+    padding: 6px 12px;
+    font-size: 0.8rem;
+    font-weight: 600;
+    cursor: pointer;
+    min-height: 38px;
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    transition: background 0.15s;
+  }
+
+  .btn-remove-pole:hover {
+    background: #fecaca;
+  }
+
+  .counter-box {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+
+  .btn-counter {
+    background: var(--gray-100);
+    border: 1px solid var(--gray-300);
+    border-radius: var(--radius-md);
+    width: 46px;
+    height: 46px;
+    font-size: 1.3rem;
+    font-weight: 700;
+    color: var(--gray-700);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: background 0.15s;
+  }
+
+  .btn-counter:active {
+    background: var(--gray-200);
+  }
+
+  .counter-input {
+    text-align: center;
+    font-weight: 700;
+    font-size: 1.1rem;
+    width: 80px;
+  }
+
+  .geo-box {
+    background: #f8fafc;
+    border: 1px solid #e2e8f0;
+    border-radius: var(--radius-md);
+    padding: 14px;
+    margin-top: 10px;
+    margin-bottom: 14px;
+  }
+
+  .geo-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 10px;
+  }
+
+  .btn-gps {
+    background: #0284c7;
+    color: #ffffff;
+    border: none;
+    border-radius: var(--radius-md);
+    padding: 10px 16px;
+    font-size: 0.88rem;
+    font-weight: 600;
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    cursor: pointer;
+    min-height: 44px;
+    transition: background 0.15s;
+    box-shadow: 0 2px 4px rgba(2, 132, 199, 0.2);
+  }
+
+  .btn-gps:active {
+    background: #0369a1;
+  }
+
+  .gps-status {
+    font-size: 0.78rem;
+    font-weight: 600;
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+  }
+
+  .gps-status.ok { color: var(--success); }
+  .gps-status.warn { color: var(--accent); }
+  .gps-status.error { color: var(--danger); }
+
+  .geo-coords-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 8px;
+    margin-top: 8px;
+  }
+
+  .geo-coord-item {
+    background: #ffffff;
+    border: 1px solid var(--gray-200);
+    border-radius: 8px;
+    padding: 6px 8px;
+    font-size: 0.76rem;
+  }
+
+  .geo-coord-item .label {
+    color: var(--gray-600);
+    font-size: 0.7rem;
+    display: block;
+  }
+
+  .geo-coord-item .val {
+    font-family: monospace;
+    font-weight: 600;
+    color: var(--gray-800);
+  }
+
+  .photos-section {
+    margin-top: 14px;
+  }
+
+  .photos-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 10px;
+    margin-top: 8px;
+  }
+
+  .photo-slot {
+    aspect-ratio: 1 / 1;
+    border: 2px dashed var(--gray-300);
+    border-radius: var(--radius-md);
+    background: var(--gray-50);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    position: relative;
+    overflow: hidden;
+    transition: border-color 0.2s, background 0.2s;
+  }
+
+  .photo-slot:hover {
+    border-color: var(--primary);
+    background: var(--primary-light);
+  }
+
+  .photo-slot.has-image {
+    border-style: solid;
+    border-color: var(--primary);
+    background: #000;
+  }
+
+  .photo-preview {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+  }
+
+  .photo-slot-placeholder {
+    text-align: center;
+    color: var(--gray-600);
+    padding: 6px;
+  }
+
+  .photo-slot-placeholder .icon {
+    margin-bottom: 2px;
+    display: block;
+  }
+
+  .photo-slot-placeholder .text {
+    font-size: 0.72rem;
+    font-weight: 600;
+  }
+
+  .photo-delete-btn {
+    position: absolute;
+    top: 4px;
+    right: 4px;
+    background: rgba(239, 68, 68, 0.85);
+    color: #ffffff;
+    border: none;
+    border-radius: 50%;
+    width: 24px;
+    height: 24px;
+    font-size: 0.75rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+  }
+
+  .btn-add-pole {
+    width: 100%;
+    background: #ffffff;
+    color: var(--primary);
+    border: 2px dashed var(--primary);
+    border-radius: var(--radius-lg);
+    padding: 16px;
+    font-size: 1rem;
+    font-weight: 700;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    cursor: pointer;
+    margin-bottom: 24px;
+    transition: all 0.2s;
+    min-height: 52px;
+  }
+
+  .btn-add-pole:hover {
+    background: var(--primary-light);
+  }
+
+  .bottom-bar {
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    background: rgba(255, 255, 255, 0.95);
+    backdrop-filter: blur(10px);
+    border-top: 1px solid var(--gray-200);
+    padding: 12px 16px;
+    box-shadow: 0 -4px 10px rgba(0, 0, 0, 0.05);
+    z-index: 90;
+  }
+
+  .bottom-bar-inner {
+    max-width: 680px;
+    margin: 0 auto;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+
+  .counter-summary {
+    flex: 1;
+    font-size: 0.85rem;
+    color: var(--gray-600);
+  }
+
+  .counter-summary strong {
+    font-size: 1.1rem;
+    color: var(--secondary);
+    display: block;
+  }
+
+  .btn-submit {
+    flex: 2;
+    background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+    color: #ffffff;
+    border: none;
+    border-radius: var(--radius-md);
+    padding: 14px 20px;
+    font-size: 1rem;
+    font-weight: 700;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    cursor: pointer;
+    min-height: 52px;
+    box-shadow: 0 4px 6px rgba(16, 185, 129, 0.25);
+    transition: all 0.2s;
+  }
+
+  .btn-submit:active {
+    transform: scale(0.98);
+  }
+
+  .btn-submit:disabled {
+    background: var(--gray-300);
+    cursor: not-allowed;
+    box-shadow: none;
+  }
+
+  .modal-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(15, 23, 42, 0.7);
+    backdrop-filter: blur(4px);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 1000;
+    padding: 20px;
+  }
+
+  .modal-card {
+    background: #ffffff;
+    border-radius: var(--radius-lg);
+    padding: 28px 24px;
+    width: 100%;
+    max-width: 440px;
+    text-align: center;
+    box-shadow: var(--shadow-lg);
+    animation: zoomIn 0.2s ease-out;
+  }
+
+  @keyframes zoomIn {
+    from { transform: scale(0.9); opacity: 0; }
+    to { transform: scale(1); opacity: 1; }
+  }
+
+  .spinner {
+    width: 48px;
+    height: 48px;
+    border: 4px solid var(--gray-200);
+    border-top: 4px solid var(--primary);
+    border-radius: 50%;
+    animation: spin 0.8s linear infinite;
+    margin: 0 auto 16px;
+  }
+
+  @keyframes spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+  }
+
+  .modal-title {
+    font-size: 1.2rem;
+    font-weight: 700;
+    color: var(--secondary);
+    margin-bottom: 8px;
+  }
+
+  .modal-msg {
+    font-size: 0.9rem;
+    color: var(--gray-600);
+    margin-bottom: 20px;
+  }
+
+  .btn-modal {
+    width: 100%;
+    background: var(--primary);
+    color: #ffffff;
+    border: none;
+    border-radius: var(--radius-md);
+    padding: 12px;
+    font-size: 0.95rem;
+    font-weight: 600;
+    cursor: pointer;
+    min-height: 46px;
+  }
+
+  .hidden {
+    display: none !important;
+  }
+</style>
+</head>
+<body>
+
+  <!-- Cabecera de la Aplicacion -->
+  <header class="app-header">
+    <div class="header-content">
+      <div class="app-title">
+        <span><svg width="20" height="20" viewBox="0 0 24 24" fill="#f59e0b" style="vertical-align:middle; display:inline-block;"><path d="M13 2L3 14h7v8l11-14h-8l1-6z"/></svg></span>
+        <span>Relevamiento Alumbrado P&uacute;blico</span>
+      </div>
+      <div class="app-subtitle">Control de Gesti&oacute;n &amp; Conexi&oacute;n a Medidores de Alumbrado</div>
+      <div class="account-badge">
+        <span><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:middle; display:inline-block;"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg> Cuenta:</span>
+        <strong>relevamientocontrolgestion@gmail.com</strong>
+      </div>
+    </div>
+  </header>
+
+  <!-- Contenedor Principal del Formulario -->
+  <main class="container">
+    <form id="form-relevamiento" onsubmit="event.preventDefault(); enviarRelevamiento();">
+
+      <!-- SECCION 1: DATOS DEL MEDIDOR Y LECTURAS -->
+      <section class="card">
+        <div class="card-header">
+          <h2 class="card-title">
+            <span><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#0284c7" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:middle; display:inline-block;"><path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"></path><rect x="8" y="2" width="8" height="4" rx="1" ry="1"></rect></svg></span>
+            <span>1. Datos del Medidor Instalado</span>
+          </h2>
+        </div>
+
+        <div class="form-group">
+          <label class="form-label" for="field-fecha">Fecha de Relevamiento <span class="required">*</span></label>
+          <input type="date" class="form-input" id="field-fecha" required>
+        </div>
+
+        <div class="form-group">
+          <label class="form-label" for="field-medidor">N&uacute;mero del Medidor Instalado <span class="required">*</span></label>
+          <input type="text" inputmode="numeric" class="form-input" id="field-medidor" placeholder="Ej: 72677900 / 12345678" required>
+        </div>
+
+        <!-- Lecturas Multifuncion -->
+        <div class="form-group" style="margin-top: 18px;">
+          <label class="form-label" style="font-size: 0.9rem; color: #0284c7; display:flex; align-items:center; gap:6px;">
+            <span><svg width="20" height="20" viewBox="0 0 24 24" fill="#f59e0b" style="vertical-align:middle; display:inline-block;"><path d="M13 2L3 14h7v8l11-14h-8l1-6z"/></svg></span>
+            <span>Lecturas del Medidor (Llenar campos correspondientes)</span>
+          </label>
+          
+          <div class="readings-grid">
+            <!-- E: Activa Total -->
+            <div class="reading-card">
+              <span class="reading-code">E</span>
+              <span class="reading-desc">Energ&iacute;a Activa Total (kWh)</span>
+              <input type="number" step="any" class="form-input" id="field-e" placeholder="Lectura Activa">
+            </div>
+
+            <!-- EAR: Activa Resto -->
+            <div class="reading-card">
+              <span class="reading-code">EAR</span>
+              <span class="reading-desc">Energ&iacute;a Activa Resto (kWh)</span>
+              <input type="number" step="any" class="form-input" id="field-ear" placeholder="Lectura Resto">
+            </div>
+
+            <!-- EAP: Activa Pico -->
+            <div class="reading-card">
+              <span class="reading-code">EAP</span>
+              <span class="reading-desc">Energ&iacute;a Activa Pico (kWh)</span>
+              <input type="number" step="any" class="form-input" id="field-eap" placeholder="Lectura Pico">
+            </div>
+
+            <!-- EAV: Activa Valle -->
+            <div class="reading-card">
+              <span class="reading-code">EAV</span>
+              <span class="reading-desc">Energ&iacute;a Activa Valle (kWh)</span>
+              <input type="number" step="any" class="form-input" id="field-eav" placeholder="Lectura Valle">
+            </div>
+
+            <!-- ERT: Reactiva Total -->
+            <div class="reading-card" style="grid-column: span 2;">
+              <span class="reading-code">ERT</span>
+              <span class="reading-desc">Energ&iacute;a Reactiva Total (kVARh)</span>
+              <input type="number" step="any" class="form-input" id="field-ert" placeholder="Lectura Reactiva">
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- SECCION 2: MODULO SECUENCIAL DE POSTES DE LUMINARIAS -->
+      <section>
+        <div style="display:flex; justify-content:space-between; align-items:center; margin: 20px 4px 12px;">
+          <h2 style="font-size: 1.1rem; font-weight: 700; color: #0f172a; display:flex; align-items:center; gap:8px;">
+            <span><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#0284c7" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:middle; display:inline-block;"><path d="M9 18h6"></path><path d="M10 22h4"></path><path d="M12 2a7 7 0 0 0-7 7c0 2.38 1.19 4.47 3 5.74V17a1 1 0 0 0 1 1h6a1 1 0 0 0 1-1v-2.26c1.81-1.27 3-3.36 3-5.74a7 7 0 0 0-7-7z"></path></svg></span>
+            <span>2. Relevamiento por Poste de Luminaria</span>
+          </h2>
+        </div>
+
+        <!-- Contenedor dinamico donde se agregan los postes -->
+        <div id="postes-container"></div>
+
+        <!-- Boton para Agregar Poste Secuencialmente con onclick directo -->
+        <button type="button" class="btn-add-pole" id="btn-add-pole" onclick="agregarPoste()">
+          <span><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:middle; display:inline-block;"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg></span>
+          <span>Agregar Relevamiento de Poste de Alumbrado</span>
+        </button>
+      </section>
+
+    </form>
+  </main>
+
+  <!-- Barra de Accion Inferior Fija (Mobile-First) -->
+  <aside class="bottom-bar">
+    <div class="bottom-bar-inner">
+      <div class="counter-summary">
+        <span>Postes relevados:</span>
+        <strong id="summary-total-postes">0 Postes</strong>
+      </div>
+      <button type="button" class="btn-submit" onclick="enviarRelevamiento()">
+        <span><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:middle; display:inline-block;"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"></path><polyline points="17 21 17 13 7 13 7 21"></polyline><polyline points="7 3 7 8 15 8"></polyline></svg></span>
+        <span>Guardar y Enviar</span>
+      </button>
+    </div>
+  </aside>
+
+  <!-- Modal de Carga y Resultados -->
+  <div class="modal-overlay hidden" id="modal-overlay">
+    <div class="modal-card">
+      <div class="spinner" id="modal-spinner"></div>
+      <h3 class="modal-title" id="modal-title">Guardando Relevamiento</h3>
+      <p class="modal-msg" id="modal-msg">Enviando datos y fotograf&iacute;as a Google Drive y Sheets...</p>
+      <button type="button" class="btn-modal hidden" id="modal-btn-action">Aceptar</button>
+    </div>
+  </div>
+
+  <script>
+  var APPS_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbxVGx8m5z6aRxQG7CJBp403RGS4e7jhpi__3OMvVQkZ3a8guJDd5CUlf7uI53R4N3qB/exec";
+  var poleCounter = 0;
+  var polesData = new Map();
+
+  var svgPinJs = '<svg width="15" height="15" viewBox="0 0 24 24" fill="currentColor" style="vertical-align:middle; display:inline-block;"><path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5a2.5 2.5 0 0 1 0-5 2.5 2.5 0 0 1 0 5z"/></svg>';
+  var svgTrashJs = '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:middle; display:inline-block;"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path></svg>';
+  var svgCameraJs = '<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:middle; display:inline-block;"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"></path><circle cx="12" cy="13" r="4"></circle></svg>';
+  var svgGpsJs = '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:middle; display:inline-block;"><polygon points="12 2 19 21 12 17 5 21 12 2"></polygon></svg>';
+
+  // Funcion de inicializacion robusta
+  function initApp() {
+    try {
+      var fechaInput = document.getElementById("field-fecha");
+      if (fechaInput && !fechaInput.value) {
+        var today = new Date().toISOString().split("T")[0];
+        fechaInput.value = today;
+      }
+
+      var btnAdd = document.getElementById("btn-add-pole");
+      if (btnAdd) {
+        btnAdd.onclick = agregarPoste;
+      }
+
+      var btnSubmit = document.querySelector(".btn-submit");
+      if (btnSubmit) {
+        btnSubmit.onclick = enviarRelevamiento;
+      }
+
+      var container = document.getElementById("postes-container");
+      if (container && container.children.length === 0) {
+        agregarPoste();
+      }
+      actualizarResumenPostes();
+    } catch (err) {
+      console.error("Error en initApp:", err);
+    }
+  }
+
+  // Invocar inmediatamente y respaldar con carga de DOM
+  if (document.readyState === "loading") {
+    document.addEventListener("DOMContentLoaded", initApp);
+  } else {
+    initApp();
+  }
+  setTimeout(initApp, 200);
+
+  function agregarPoste() {
+    try {
+      poleCounter++;
+      var poleId = "pole-" + Date.now() + "-" + Math.floor(Math.random() * 1000);
+      var currentCards = document.querySelectorAll(".pole-card");
+      var poleNumber = currentCards.length + 1;
+
+      polesData.set(poleId, {
+        id: poleId,
+        numero: poleNumber,
+        fotos: [null, null, null],
+        geo: { lat: null, lng: null, acc: null }
+      });
+
+      var container = document.getElementById("postes-container");
+      if (!container) {
+        console.error("No se encontro el contenedor postes-container");
+        return;
+      }
+
+      var poleCard = document.createElement("div");
+      poleCard.className = "pole-card highlight";
+      poleCard.id = poleId;
+      poleCard.setAttribute("data-pole-id", poleId);
+
+      var deleteBtnHtml = "";
+      if (poleNumber > 1) {
+        deleteBtnHtml = '<button type="button" class="btn-remove-pole" onclick="eliminarPoste(\'' + poleId + '\')">' + svgTrashJs + ' <span>Eliminar</span></button>';
+      }
+
+      var html = [
+        '<div class="pole-header">',
+        '  <span class="pole-badge">' + svgPinJs + ' Poste #' + poleNumber + '</span>',
+        deleteBtnHtml,
+        '</div>',
+        '<div class="form-group">',
+        '  <label class="form-label">Cantidad de L&aacute;mparas Conectadas <span class="required">*</span></label>',
+        '  <div class="counter-box">',
+        '    <button type="button" class="btn-counter" onclick="ajustarContador(\'' + poleId + '\', -1)">-</button>',
+        '    <input type="number" class="form-input counter-input" id="' + poleId + '-lamparas" value="1" min="1" max="20" required>',
+        '    <button type="button" class="btn-counter" onclick="ajustarContador(\'' + poleId + '\', 1)">+</button>',
+        '  </div>',
+        '</div>',
+        '<div class="form-group">',
+        '  <label class="form-label">Tipo / Tecnolog&iacute;a de Luminaria <span class="required">*</span></label>',
+        '  <select class="form-select" id="' + poleId + '-tipo" required>',
+        '    <option value="LED" selected>LED (Eficiente)</option>',
+        '    <option value="Sodio Alta Presion (SAP)">Sodio Alta Presi&oacute;n (SAP - Luz Naranja)</option>',
+        '    <option value="Vapor de Mercurio">Vapor de Mercurio (Luz Blanca)</option>',
+        '    <option value="Mezcladora">L&aacute;mpara Mezcladora</option>',
+        '    <option value="Otro">Otra / No identificada</option>',
+        '  </select>',
+        '</div>',
+        '<div class="form-group">',
+        '  <label class="form-label">Estado Operativo de las L&aacute;mparas <span class="required">*</span></label>',
+        '  <select class="form-select" id="' + poleId + '-estado" required>',
+        '    <option value="Todas Encienden" selected>Todas Encienden Correctamente</option>',
+        '    <option value="Apagada / Fuera de Servicio">Apagada / Fuera de Servicio</option>',
+        '    <option value="Enciende Parcialmente">Enciende Parcialmente</option>',
+        '    <option value="Titilando / Falla Balasto">Titilando / Parpadeo Intermitente</option>',
+        '    <option value="Tulipa / Artefacto Roto">Tulipa o Carcasa Da&ntilde;ada</option>',
+        '  </select>',
+        '</div>',
+        '<div class="geo-box">',
+        '  <div class="geo-header">',
+        '    <span style="font-weight:700; font-size:0.85rem; color:#0f172a; display:flex; align-items:center; gap:4px;">',
+        '      ' + svgPinJs + ' Ubicaci&oacute;n Geocatastral',
+        '    </span>',
+        '    <span class="gps-status" id="' + poleId + '-gps-status">Sin capturar</span>',
+        '  </div>',
+        '  <button type="button" class="btn-gps" onclick="capturarGPS(\'' + poleId + '\')">',
+        '    <span>' + svgGpsJs + '</span>',
+        '    <span>Capturar GPS Actual</span>',
+        '  </button>',
+        '  <div class="geo-coords-grid">',
+        '    <div class="geo-coord-item">',
+        '      <span class="label">Latitud</span>',
+        '      <span class="val" id="' + poleId + '-val-lat">--</span>',
+        '    </div>',
+        '    <div class="geo-coord-item">',
+        '      <span class="label">Longitud</span>',
+        '      <span class="val" id="' + poleId + '-val-lng">--</span>',
+        '    </div>',
+        '    <div class="geo-coord-item">',
+        '      <span class="label">Precisi&oacute;n</span>',
+        '      <span class="val" id="' + poleId + '-val-acc">--</span>',
+        '    </div>',
+        '  </div>',
+        '  <div class="form-group" style="margin-top:10px; margin-bottom:0;">',
+        '    <label class="form-label">Nomenclatura Catastral / Referencia Urbana</label>',
+        '    <input type="text" class="form-input" id="' + poleId + '-catastro" placeholder="Ej: Distrito 1, Mz 14, Parc 08 o Calle y Altura">',
+        '  </div>',
+        '</div>',
+        '<div class="photos-section">',
+        '  <label class="form-label">Fotograf&iacute;as del Poste (Hasta 3 im&aacute;genes)</label>',
+        '  <div class="photos-grid">',
+        '    <div class="photo-slot" id="' + poleId + '-slot-0" onclick="dispararCamara(\'' + poleId + '\', 0)">',
+        '      <input type="file" id="' + poleId + '-file-0" accept="image/jpeg,image/png,image/webp,image/jpg" capture="environment" style="display:none" onchange="procesarFoto(\'' + poleId + '\', 0, event)">',
+        '      <div class="photo-slot-placeholder" id="' + poleId + '-ph-0">',
+        '        <span class="icon">' + svgCameraJs + '</span>',
+        '        <span class="text">Foto 1</span>',
+        '      </div>',
+        '    </div>',
+        '    <div class="photo-slot" id="' + poleId + '-slot-1" onclick="dispararCamara(\'' + poleId + '\', 1)">',
+        '      <input type="file" id="' + poleId + '-file-1" accept="image/jpeg,image/png,image/webp,image/jpg" capture="environment" style="display:none" onchange="procesarFoto(\'' + poleId + '\', 1, event)">',
+        '      <div class="photo-slot-placeholder" id="' + poleId + '-ph-1">',
+        '        <span class="icon">' + svgCameraJs + '</span>',
+        '        <span class="text">Foto 2</span>',
+        '      </div>',
+        '    </div>',
+        '    <div class="photo-slot" id="' + poleId + '-slot-2" onclick="dispararCamara(\'' + poleId + '\', 2)">',
+        '      <input type="file" id="' + poleId + '-file-2" accept="image/jpeg,image/png,image/webp,image/jpg" capture="environment" style="display:none" onchange="procesarFoto(\'' + poleId + '\', 2, event)">',
+        '      <div class="photo-slot-placeholder" id="' + poleId + '-ph-2">',
+        '        <span class="icon">' + svgCameraJs + '</span>',
+        '        <span class="text">Foto 3</span>',
+        '      </div>',
+        '    </div>',
+        '  </div>',
+        '</div>',
+        '<div class="form-group" style="margin-top:14px; margin-bottom:0;">',
+        '  <label class="form-label">Observaciones Adicionales del Poste</label>',
+        '  <input type="text" class="form-input" id="' + poleId + '-obs" placeholder="Ej: Poste de hormig&oacute;n inclinado, ramas tocando l&iacute;nea, etc.">',
+        '</div>'
+      ].join("\n");
+
+      poleCard.innerHTML = html;
+      container.appendChild(poleCard);
+      actualizarResumenPostes();
+
+      if (poleNumber > 1) {
+        poleCard.scrollIntoView({ behavior: "smooth", block: "start" });
+      }
+    } catch (err) {
+      console.error("Error al agregar poste:", err);
+      alert("Error al agregar poste: " + err.message);
+    }
+  }
+
+  function eliminarPoste(poleId) {
+    var card = document.getElementById(poleId);
+    if (card) {
+      card.remove();
+      polesData.delete(poleId);
+      renumerarPostes();
+      actualizarResumenPostes();
+    }
+  }
+
+  function renumerarPostes() {
+    var cards = document.querySelectorAll(".pole-card");
+    cards.forEach(function(card, index) {
+      var num = index + 1;
+      var badge = card.querySelector(".pole-badge");
+      if (badge) {
+        badge.innerHTML = svgPinJs + " Poste #" + num;
+      }
+      var poleId = card.id;
+      if (polesData.has(poleId)) {
+        polesData.get(poleId).numero = num;
+      }
+    });
+  }
+
+  function actualizarResumenPostes() {
+    var total = document.querySelectorAll(".pole-card").length;
+    var summaryEl = document.getElementById("summary-total-postes");
+    if (summaryEl) {
+      summaryEl.textContent = total + (total === 1 ? " Poste" : " Postes");
+    }
+  }
+
+  function ajustarContador(poleId, delta) {
+    var input = document.getElementById(poleId + "-lamparas");
+    if (input) {
+      var val = parseInt(input.value) || 1;
+      val = Math.max(1, Math.min(20, val + delta));
+      input.value = val;
+    }
+  }
+
+  function capturarGPS(poleId) {
+    var statusElem = document.getElementById(poleId + "-gps-status");
+    var valLat = document.getElementById(poleId + "-val-lat");
+    var valLng = document.getElementById(poleId + "-val-lng");
+    var valAcc = document.getElementById(poleId + "-val-acc");
+
+    if (!navigator.geolocation) {
+      statusElem.textContent = "GPS no soportado";
+      statusElem.className = "gps-status error";
+      alert("La geolocalizacion no esta soportada en este navegador o dispositivo.");
+      return;
+    }
+
+    statusElem.textContent = "Obteniendo se\u00f1al GPS...";
+    statusElem.className = "gps-status warn";
+
+    var options = {
+      enableHighAccuracy: true,
+      timeout: 15000,
+      maximumAge: 0
+    };
+
+    navigator.geolocation.getCurrentPosition(
+      function(pos) {
+        var lat = pos.coords.latitude;
+        var lng = pos.coords.longitude;
+        var acc = Math.round(pos.coords.accuracy);
+
+        valLat.textContent = lat.toFixed(6);
+        valLng.textContent = lng.toFixed(6);
+        valAcc.textContent = acc + " m";
+
+        statusElem.textContent = "Precision: \u00b1" + acc + "m";
+        statusElem.className = acc <= 15 ? "gps-status ok" : "gps-status warn";
+
+        if (polesData.has(poleId)) {
+          polesData.get(poleId).geo = { lat: lat, lng: lng, acc: acc };
+        }
+      },
+      function(err) {
+        statusElem.textContent = "Error GPS: " + err.message;
+        statusElem.className = "gps-status error";
+        console.warn("Error Geolocation:", err);
+      },
+      options
+    );
+  }
+
+  function dispararCamara(poleId, slotIndex) {
+    var fileInput = document.getElementById(poleId + "-file-" + slotIndex);
+    if (fileInput) {
+      fileInput.click();
+    }
+  }
+
+  function procesarFoto(poleId, slotIndex, event) {
+    var file = event.target.files[0];
+    if (!file) return;
+
+    var reader = new FileReader();
+    reader.onload = function(e) {
+      var img = new Image();
+      img.onload = function() {
+        var MAX_DIM = 1280;
+        var width = img.width;
+        var height = img.height;
+
+        if (width > height) {
+          if (width > MAX_DIM) {
+            height = Math.round((height * MAX_DIM) / width);
+            width = MAX_DIM;
+          }
+        } else {
+          if (height > MAX_DIM) {
+            width = Math.round((width * MAX_DIM) / height);
+            height = MAX_DIM;
+          }
+        }
+
+        var canvas = document.createElement("canvas");
+        canvas.width = width;
+        canvas.height = height;
+        var ctx = canvas.getContext("2d");
+        ctx.drawImage(img, 0, 0, width, height);
+
+        var compressedBase64 = canvas.toDataURL("image/jpeg", 0.75);
+
+        if (polesData.has(poleId)) {
+          polesData.get(poleId).fotos[slotIndex] = {
+            base64: compressedBase64,
+            mimeType: "image/jpeg"
+          };
+        }
+
+        var slot = document.getElementById(poleId + "-slot-" + slotIndex);
+        slot.classList.add("has-image");
+        slot.innerHTML = '<img src="' + compressedBase64 + '" class="photo-preview">' +
+          '<button type="button" class="photo-delete-btn" onclick="eliminarFoto(\'' + poleId + '\', ' + slotIndex + ', event)">&times;</button>';
+      };
+      img.src = e.target.result;
+    };
+    reader.readAsDataURL(file);
+  }
+
+  function eliminarFoto(poleId, slotIndex, event) {
+    event.stopPropagation();
+    if (polesData.has(poleId)) {
+      polesData.get(poleId).fotos[slotIndex] = null;
+    }
+
+    var slot = document.getElementById(poleId + "-slot-" + slotIndex);
+    slot.classList.remove("has-image");
+    slot.innerHTML = '<input type="file" id="' + poleId + '-file-' + slotIndex + '" accept="image/jpeg,image/png,image/webp,image/jpg" capture="environment" style="display:none" onchange="procesarFoto(\'' + poleId + '\', ' + slotIndex + ', event)">' +
+      '<div class="photo-slot-placeholder" id="' + poleId + '-ph-' + slotIndex + '">' +
+      '<span class="icon">' + svgCameraJs + '</span>' +
+      '<span class="text">Foto ' + (slotIndex + 1) + '</span>' +
+      '</div>';
+  }
+
+  function enviarRelevamiento() {
+    var medidorInput = document.getElementById("field-medidor");
+    var medidorVal = medidorInput.value.trim();
+    if (!medidorVal) {
+      alert("Por favor ingrese el numero del medidor instalado.");
+      medidorInput.focus();
+      return;
+    }
+
+    var fechaVal = document.getElementById("field-fecha").value;
+
+    var lecturas = {
+      E: document.getElementById("field-e").value.trim(),
+      EAR: document.getElementById("field-ear").value.trim(),
+      EAP: document.getElementById("field-eap").value.trim(),
+      EAV: document.getElementById("field-eav").value.trim(),
+      ERT: document.getElementById("field-ert").value.trim()
+    };
+
+    var cards = document.querySelectorAll(".pole-card");
+    if (cards.length === 0) {
+      alert("Debe agregar al menos un poste de luminaria para relevar.");
+      return;
+    }
+
+    var postesArray = [];
+    cards.forEach(function(card, index) {
+      var poleId = card.id;
+      var memData = polesData.get(poleId) || {};
+
+      var lamparas = parseInt(document.getElementById(poleId + "-lamparas").value) || 1;
+      var tipo = document.getElementById(poleId + "-tipo").value;
+      var estado = document.getElementById(poleId + "-estado").value;
+      var catastro = document.getElementById(poleId + "-catastro").value.trim();
+      var obs = document.getElementById(poleId + "-obs").value.trim();
+
+      var fotosValidas = (memData.fotos || []).filter(function(f) { return f !== null; });
+
+      postesArray.push({
+        numeroPoste: index + 1,
+        cantidadLamparas: lamparas,
+        tipoLuminaria: tipo,
+        estadoLuminaria: estado,
+        latitud: memData.geo ? memData.geo.lat : null,
+        longitud: memData.geo ? memData.geo.lng : null,
+        precision: memData.geo ? memData.geo.acc : null,
+        nomenclaturaCatastral: catastro,
+        direccionReferencia: catastro,
+        fotos: fotosValidas,
+        observaciones: obs
+      });
+    });
+
+    var payload = {
+      fecha: fechaVal,
+      medidor: medidorVal,
+      lecturas: lecturas,
+      postes: postesArray
+    };
+
+    mostrarModalCarga("Comprimiendo y registrando relevamiento en Google Sheets y Drive...");
+
+    // Si corre nativamente dentro del iframe de Apps Script
+    if (typeof google !== "undefined" && google.script && google.script.run) {
+      google.script.run
+        .withSuccessHandler(onEnvioExitoso)
+        .withFailureHandler(onEnvioFallido)
+        .procesarRelevamiento(payload);
+    } else {
+      // Modo Standalone / GitHub Pages: Envio HTTP POST directo a Apps Script Web App
+      fetch(APPS_SCRIPT_URL, {
+        method: "POST",
+        mode: "no-cors",
+        headers: { "Content-Type": "text/plain;charset=utf-8" },
+        body: JSON.stringify(payload)
+      })
+      .then(function() {
+        onEnvioExitoso({
+          success: true,
+          message: "Relevamiento enviado correctamente a Google Drive y Sheets.",
+          totalPostes: postesArray.length
+        });
+      })
+      .catch(function(err) {
+        onEnvioFallido(err);
+      });
+    }
+  }
+
+  function mostrarModalCarga(mensaje) {
+    document.getElementById("modal-overlay").classList.remove("hidden");
+    document.getElementById("modal-spinner").classList.remove("hidden");
+    document.getElementById("modal-title").textContent = "Guardando Datos";
+    document.getElementById("modal-msg").textContent = mensaje;
+    document.getElementById("modal-btn-action").classList.add("hidden");
+  }
+
+  function onEnvioExitoso(resp) {
+    document.getElementById("modal-spinner").classList.add("hidden");
+    if (resp.success) {
+      document.getElementById("modal-title").innerHTML = "&iexcl;Carga Exitosa!";
+      document.getElementById("modal-msg").innerHTML = 
+        "<strong>" + resp.message + "</strong><br><br>" +
+        "Medidor: <strong>" + document.getElementById("field-medidor").value + "</strong><br>" +
+        "Postes cargados: <strong>" + resp.totalPostes + "</strong><br><br>" +
+        '<span style="font-size:0.8rem; color:#64748b;">Los datos fueron asentados en Google Sheets y las fotos en Google Drive de relevamientocontrolgestion@gmail.com</span>';
+      var btn = document.getElementById("modal-btn-action");
+      btn.textContent = "Iniciar Nuevo Relevamiento";
+      btn.onclick = reiniciarFormulario;
+      btn.classList.remove("hidden");
+    } else {
+      onEnvioFallido(resp.message);
+    }
+  }
+
+  function onEnvioFallido(error) {
+    document.getElementById("modal-spinner").classList.add("hidden");
+    document.getElementById("modal-title").textContent = "Error al Guardar";
+    document.getElementById("modal-msg").textContent = "Ocurrio un problema: " + (error.message || error);
+    var btn = document.getElementById("modal-btn-action");
+    btn.textContent = "Cerrar y Reintentar";
+    btn.onclick = function() {
+      document.getElementById("modal-overlay").classList.add("hidden");
+    };
+    btn.classList.remove("hidden");
+  }
+
+  function reiniciarFormulario() {
+    document.getElementById("modal-overlay").classList.add("hidden");
+    document.getElementById("form-relevamiento").reset();
+    document.getElementById("postes-container").innerHTML = "";
+    polesData.clear();
+    poleCounter = 0;
+    var fechaInput = document.getElementById("field-fecha");
+    if (fechaInput) {
+      fechaInput.value = new Date().toISOString().split("T")[0];
+    }
+    agregarPoste();
+    window.scrollTo({ top: 0, behavior: "smooth" });
+  }
+
+  // Exportar funciones criticas al objeto global window
+  window.agregarPoste = agregarPoste;
+  window.eliminarPoste = eliminarPoste;
+  window.ajustarContador = ajustarContador;
+  window.capturarGPS = capturarGPS;
+  window.dispararCamara = dispararCamara;
+  window.procesarFoto = procesarFoto;
+  window.eliminarFoto = eliminarFoto;
+  window.enviarRelevamiento = enviarRelevamiento;
+  window.reiniciarFormulario = reiniciarFormulario;
+</script>
+
+</body>
+</html>
