@@ -3,28 +3,21 @@
 Test Determinista de Validación de Datos y Payload (QA Instancia 1)
 Sistema: Relevamiento de Alumbrado Público y Medidores
 Cuenta: relevamientocontrolgestion@gmail.com
+Versión: 2.0 (Campos simplificados: sin lecturas de medidor y sin catastro)
 ==============================================================================
 """
 
 import unittest
 import json
-import re
 from datetime import datetime
 
 class TestRelevamientoPayload(unittest.TestCase):
 
     def setUp(self):
-        # Mock de payload completo generado por el frontend
+        # Payload simplificado generado por el formulario
         self.sample_payload = {
             "fecha": "2026-11-02",
             "medidor": "72677900",
-            "lecturas": {
-                "E": "12540.5",
-                "EAR": "8200.0",
-                "EAP": "2140.2",
-                "EAV": "2200.3",
-                "ERT": "1450.8"
-            },
             "postes": [
                 {
                     "numeroPoste": 1,
@@ -34,8 +27,6 @@ class TestRelevamientoPayload(unittest.TestCase):
                     "latitud": -31.420083,
                     "longitud": -64.188776,
                     "precision": 8,
-                    "nomenclaturaCatastral": "Distrito 1, Manzana 14, Parcela 08",
-                    "direccionReferencia": "Av. Colón 1250",
                     "fotos": [
                         {"base64": "data:image/jpeg;base64,/9j/4AAQSkZJRg==", "mimeType": "image/jpeg"},
                         {"base64": "/9j/4AAQSkZJRg==", "mimeType": "image/jpeg"}
@@ -50,8 +41,6 @@ class TestRelevamientoPayload(unittest.TestCase):
                     "latitud": -31.420450,
                     "longitud": -64.189100,
                     "precision": 12,
-                    "nomenclaturaCatastral": "Distrito 1, Manzana 14, Parcela 10",
-                    "direccionReferencia": "Av. Colón 1280",
                     "fotos": [
                         {"base64": "/9j/4AAQSkZJRg==", "mimeType": "image/jpeg"}
                     ],
@@ -60,17 +49,12 @@ class TestRelevamientoPayload(unittest.TestCase):
             ]
         }
 
-        # Lista de 23 columnas de la estructura plana en Google Sheets
+        # Lista de 16 columnas del Modelo Plano Simplificado en Google Sheets
         self.expected_columns = [
             "ID_Registro",
             "Timestamp_Carga",
             "Fecha_Relevamiento",
             "Numero_Medidor",
-            "Lectura_E_Activa",
-            "Lectura_EAR_Resto",
-            "Lectura_EAP_Pico",
-            "Lectura_EAV_Valle",
-            "Lectura_ERT_Reactiva",
             "Poste_Numero",
             "Cantidad_Lamparas",
             "Tipo_Luminaria",
@@ -78,8 +62,6 @@ class TestRelevamientoPayload(unittest.TestCase):
             "Latitud_GPS",
             "Longitud_GPS",
             "Precision_GPS_m",
-            "Nomenclatura_Catastral",
-            "Direccion_Referencia",
             "Foto_1_URL",
             "Foto_2_URL",
             "Foto_3_URL",
@@ -96,17 +78,12 @@ class TestRelevamientoPayload(unittest.TestCase):
         except ValueError:
             self.fail(f"La fecha '{fecha}' no tiene formato ISO válido YYYY-MM-DD")
 
-    def test_lecturas_electricas(self):
-        """Verifica que los campos de lecturas E, EAR, EAP, EAV, ERT existan y sean convertibles a float o vacíos."""
-        lecturas = self.sample_payload.get("lecturas", {})
-        for campo in ["E", "EAR", "EAP", "EAV", "ERT"]:
-            val = lecturas.get(campo)
-            if val is not None and val != "":
-                try:
-                    num = float(val)
-                    self.assertGreaterEqual(num, 0, f"La lectura {campo} debe ser >= 0")
-                except ValueError:
-                    self.fail(f"El campo {campo} ('{val}') no es numérico válido")
+    def test_ausencia_campos_removidos(self):
+        """Verifica que no se requieran campos de lecturas ni catastro en el payload simplificado."""
+        self.assertNotIn("lecturas", self.sample_payload)
+        for p in self.sample_payload.get("postes", []):
+            self.assertNotIn("nomenclaturaCatastral", p)
+            self.assertNotIn("direccionReferencia", p)
 
     def test_postes_relevamiento(self):
         """Verifica la integridad de cada poste relevado."""
@@ -135,7 +112,7 @@ class TestRelevamientoPayload(unittest.TestCase):
                 self.assertTrue(-75.0 <= lng <= -50.0, f"Longitud {lng} fuera del rango argentino")
 
     def test_serializacion_plana_google_sheets(self):
-        """Simula la serialización de filas planas hacia Google Sheets y comprueba coincidencia de 23 columnas."""
+        """Simula la serialización de filas planas hacia Google Sheets y comprueba coincidencia de 16 columnas."""
         payload = self.sample_payload
         total_postes = len(payload["postes"])
         filas = []
@@ -152,11 +129,6 @@ class TestRelevamientoPayload(unittest.TestCase):
                 "2026-11-02 12:30:00",
                 payload["fecha"],
                 str(payload["medidor"]),
-                payload["lecturas"].get("E", ""),
-                payload["lecturas"].get("EAR", ""),
-                payload["lecturas"].get("EAP", ""),
-                payload["lecturas"].get("EAV", ""),
-                payload["lecturas"].get("ERT", ""),
                 p["numeroPoste"],
                 p["cantidadLamparas"],
                 p["tipoLuminaria"],
@@ -164,8 +136,6 @@ class TestRelevamientoPayload(unittest.TestCase):
                 p.get("latitud", ""),
                 p.get("longitud", ""),
                 p.get("precision", ""),
-                p.get("nomenclaturaCatastral", ""),
-                p.get("direccionReferencia", ""),
                 fotos_urls[0],
                 fotos_urls[1],
                 fotos_urls[2],
@@ -173,11 +143,10 @@ class TestRelevamientoPayload(unittest.TestCase):
                 total_postes
             ]
             self.assertEqual(len(fila), len(self.expected_columns), 
-                             f"La fila debe tener exactamente {len(self.expected_columns)} columnas")
+                             f"La fila debe tener exactamente {len(self.expected_columns)} columnas (obtenidas: {len(fila)})")
             filas.append(fila)
 
         self.assertEqual(len(filas), 2, "Deben generarse 2 filas planas para 2 postes relevados")
 
 if __name__ == "__main__":
     unittest.main()
-

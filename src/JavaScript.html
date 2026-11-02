@@ -111,7 +111,7 @@
         '<div class="geo-box">',
         '  <div class="geo-header">',
         '    <span style="font-weight:700; font-size:0.85rem; color:#0f172a; display:flex; align-items:center; gap:4px;">',
-        '      ' + svgPinJs + ' Ubicaci&oacute;n Geocatastral',
+        '      ' + svgPinJs + ' Ubicaci&oacute;n GPS del Poste',
         '    </span>',
         '    <span class="gps-status" id="' + poleId + '-gps-status">Sin capturar</span>',
         '  </div>',
@@ -135,7 +135,6 @@
         '  </div>',
         '  <div class="form-group" style="margin-top:10px; margin-bottom:0;">',
         '    <label class="form-label">Nomenclatura Catastral / Referencia Urbana</label>',
-        '    <input type="text" class="form-input" id="' + poleId + '-catastro" placeholder="Ej: Distrito 1, Mz 14, Parc 08 o Calle y Altura">',
         '  </div>',
         '</div>',
         '<div class="photos-section">',
@@ -355,14 +354,6 @@
 
     var fechaVal = document.getElementById("field-fecha").value;
 
-    var lecturas = {
-      E: document.getElementById("field-e").value.trim(),
-      EAR: document.getElementById("field-ear").value.trim(),
-      EAP: document.getElementById("field-eap").value.trim(),
-      EAV: document.getElementById("field-eav").value.trim(),
-      ERT: document.getElementById("field-ert").value.trim()
-    };
-
     var cards = document.querySelectorAll(".pole-card");
     if (cards.length === 0) {
       alert("Debe agregar al menos un poste de luminaria para relevar.");
@@ -377,7 +368,6 @@
       var lamparas = parseInt(document.getElementById(poleId + "-lamparas").value) || 1;
       var tipo = document.getElementById(poleId + "-tipo").value;
       var estado = document.getElementById(poleId + "-estado").value;
-      var catastro = document.getElementById(poleId + "-catastro").value.trim();
       var obs = document.getElementById(poleId + "-obs").value.trim();
 
       var fotosValidas = (memData.fotos || []).filter(function (f) { return f !== null; });
@@ -390,8 +380,6 @@
         latitud: memData.geo ? memData.geo.lat : null,
         longitud: memData.geo ? memData.geo.lng : null,
         precision: memData.geo ? memData.geo.acc : null,
-        nomenclaturaCatastral: catastro,
-        direccionReferencia: catastro,
         fotos: fotosValidas,
         observaciones: obs
       });
@@ -400,7 +388,6 @@
     var payload = {
       fecha: fechaVal,
       medidor: medidorVal,
-      lecturas: lecturas,
       postes: postesArray
     };
 

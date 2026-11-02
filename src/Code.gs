@@ -56,33 +56,29 @@ function obtenerOCrearHojaCalculo() {
       }
     }
 
-    // Encabezados del Modelo Plano (1 fila por poste relevado)
-    const encabezados = [
-      "ID_Registro",
-      "Timestamp_Carga",
-      "Fecha_Relevamiento",
-      "Numero_Medidor",
-      "Lectura_E_Activa",
-      "Lectura_EAR_Resto",
-      "Lectura_EAP_Pico",
-      "Lectura_EAV_Valle",
-      "Lectura_ERT_Reactiva",
-      "Poste_Numero",
-      "Cantidad_Lamparas",
-      "Tipo_Luminaria",
-      "Estado_Luminaria",
-      "Latitud_GPS",
-      "Longitud_GPS",
-      "Precision_GPS_m",
-      "Nomenclatura_Catastral",
-      "Direccion_Referencia",
-      "Foto_1_URL",
-      "Foto_2_URL",
-      "Foto_3_URL",
-      "Observaciones_Poste",
-      "Total_Postes_Medidor"
-    ];
+  }
 
+  // Encabezados del Modelo Plano Simplificado (1 fila por poste relevado - 16 columnas)
+  const encabezados = [
+    "ID_Registro",
+    "Timestamp_Carga",
+    "Fecha_Relevamiento",
+    "Numero_Medidor",
+    "Poste_Numero",
+    "Cantidad_Lamparas",
+    "Tipo_Luminaria",
+    "Estado_Luminaria",
+    "Latitud_GPS",
+    "Longitud_GPS",
+    "Precision_GPS_m",
+    "Foto_1_URL",
+    "Foto_2_URL",
+    "Foto_3_URL",
+    "Observaciones_Poste",
+    "Total_Postes_Medidor"
+  ];
+
+  if (sheet.getLastRow() === 0) {
     sheet.appendRow(encabezados);
     const headerRange = sheet.getRange(1, 1, 1, encabezados.length);
     headerRange.setBackground("#1a365d");
@@ -176,32 +172,49 @@ function procesarRelevamiento(data) {
         }
       }
 
-      // Preparacion de fila plana
-      const fila = [
-        idRegistro,
-        timestampNow,
-        data.fecha || Utilities.formatDate(new Date(), "America/Argentina/Cordoba", "yyyy-MM-dd"),
-        String(data.medidor).trim(),
-        data.lecturas && data.lecturas.E !== undefined ? data.lecturas.E : "",
-        data.lecturas && data.lecturas.EAR !== undefined ? data.lecturas.EAR : "",
-        data.lecturas && data.lecturas.EAP !== undefined ? data.lecturas.EAP : "",
-        data.lecturas && data.lecturas.EAV !== undefined ? data.lecturas.EAV : "",
-        data.lecturas && data.lecturas.ERT !== undefined ? data.lecturas.ERT : "",
-        numPoste,
-        p.cantidadLamparas || 1,
-        p.tipoLuminaria || "No especificado",
-        p.estadoLuminaria || "No especificado",
-        p.latitud !== undefined && p.latitud !== null ? p.latitud : "",
-        p.longitud !== undefined && p.longitud !== null ? p.longitud : "",
-        p.precision !== undefined && p.precision !== null ? p.precision : "",
-        p.nomenclaturaCatastral || "",
-        p.direccionReferencia || "",
-        fotoUrls[0],
-        fotoUrls[1],
-        fotoUrls[2],
-        p.observaciones || "",
-        totalPostes
-      ];
+      // Preparacion de fila plana (adaptable a hoja existente de 23 cols o nueva de 16 cols)
+      let fila;
+      if (sheet.getLastColumn() === 23) {
+        fila = [
+          idRegistro,
+          timestampNow,
+          data.fecha || Utilities.formatDate(new Date(), "America/Argentina/Cordoba", "yyyy-MM-dd"),
+          String(data.medidor).trim(),
+          "", "", "", "", "", // Lecturas E, EAR, EAP, EAV, ERT (removidas)
+          numPoste,
+          p.cantidadLamparas || 1,
+          p.tipoLuminaria || "No especificado",
+          p.estadoLuminaria || "No especificado",
+          p.latitud !== undefined && p.latitud !== null ? p.latitud : "",
+          p.longitud !== undefined && p.longitud !== null ? p.longitud : "",
+          p.precision !== undefined && p.precision !== null ? p.precision : "",
+          "", "", // Nomenclatura catastral y direccion (removidas)
+          fotoUrls[0],
+          fotoUrls[1],
+          fotoUrls[2],
+          p.observaciones || "",
+          totalPostes
+        ];
+      } else {
+        fila = [
+          idRegistro,
+          timestampNow,
+          data.fecha || Utilities.formatDate(new Date(), "America/Argentina/Cordoba", "yyyy-MM-dd"),
+          String(data.medidor).trim(),
+          numPoste,
+          p.cantidadLamparas || 1,
+          p.tipoLuminaria || "No especificado",
+          p.estadoLuminaria || "No especificado",
+          p.latitud !== undefined && p.latitud !== null ? p.latitud : "",
+          p.longitud !== undefined && p.longitud !== null ? p.longitud : "",
+          p.precision !== undefined && p.precision !== null ? p.precision : "",
+          fotoUrls[0],
+          fotoUrls[1],
+          fotoUrls[2],
+          p.observaciones || "",
+          totalPostes
+        ];
+      }
 
       filasAInsertar.push(fila);
     }
@@ -263,4 +276,41 @@ function doPost(e) {
       message: "Error en doPost: " + err.toString()
     })).setMimeType(ContentService.MimeType.JSON);
   }
+}
+
+
+/**
+ * Funcion utilitaria para actualizar los encabezados de la planilla al modelo limpio de 16 columnas.
+ * Puede ejecutarse manualmente desde el editor de Apps Script si se desea resetear la cabecera.
+ */
+function actualizarEncabezadosANuevoModelo() {
+  const sheetContext = obtenerOCrearHojaCalculo();
+  const sheet = sheetContext.sheet;
+  const encabezados = [
+    "ID_Registro",
+    "Timestamp_Carga",
+    "Fecha_Relevamiento",
+    "Numero_Medidor",
+    "Poste_Numero",
+    "Cantidad_Lamparas",
+    "Tipo_Luminaria",
+    "Estado_Luminaria",
+    "Latitud_GPS",
+    "Longitud_GPS",
+    "Precision_GPS_m",
+    "Foto_1_URL",
+    "Foto_2_URL",
+    "Foto_3_URL",
+    "Observaciones_Poste",
+    "Total_Postes_Medidor"
+  ];
+  sheet.clear();
+  sheet.appendRow(encabezados);
+  const headerRange = sheet.getRange(1, 1, 1, encabezados.length);
+  headerRange.setBackground("#1a365d");
+  headerRange.setFontColor("#ffffff");
+  headerRange.setFontWeight("bold");
+  headerRange.setHorizontalAlignment("center");
+  sheet.setFrozenRows(1);
+  Logger.log("Encabezados actualizados a 16 columnas con exito.");
 }
