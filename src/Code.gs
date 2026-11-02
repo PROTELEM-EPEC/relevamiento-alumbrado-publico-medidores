@@ -240,3 +240,27 @@ function testCrearEstructura() {
   Logger.log("Planilla creada en: " + sheetContext.spreadsheet.getUrl());
   Logger.log("Carpeta de Drive: " + folder.getUrl());
 }
+
+/**
+ * Punto de entrada HTTP POST: Permite envios via API REST o fetch desde cualquier origen.
+ */
+function doPost(e) {
+  try {
+    var data;
+    if (e.postData && e.postData.contents) {
+      data = JSON.parse(e.postData.contents);
+    } else if (e.parameter && e.parameter.data) {
+      data = JSON.parse(e.parameter.data);
+    } else {
+      data = e.parameter;
+    }
+    var result = procesarRelevamiento(data);
+    return ContentService.createTextOutput(JSON.stringify(result))
+      .setMimeType(ContentService.MimeType.JSON);
+  } catch (err) {
+    return ContentService.createTextOutput(JSON.stringify({
+      success: false,
+      message: "Error en doPost: " + err.toString()
+    })).setMimeType(ContentService.MimeType.JSON);
+  }
+}
