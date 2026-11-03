@@ -3,7 +3,7 @@
 Test Determinista de Validación de Datos y Payload (QA Instancia 1)
 Sistema: Relevamiento de Alumbrado Público y Medidores
 Cuenta: relevamientocontrolgestion@gmail.com
-Versión: 2.0 (Campos simplificados: sin lecturas de medidor y sin catastro)
+Versión: 2.1 (Persistencia de borrador en LocalStorage y Potencia de Luminaria)
 ==============================================================================
 """
 
@@ -14,15 +14,16 @@ from datetime import datetime
 class TestRelevamientoPayload(unittest.TestCase):
 
     def setUp(self):
-        # Payload simplificado generado por el formulario
+        # Payload estructurado generado por el formulario con nuevo campo potenciaLuminaria
         self.sample_payload = {
-            "fecha": "2026-11-02",
+            "fecha": "2026-11-03",
             "medidor": "72677900",
             "postes": [
                 {
                     "numeroPoste": 1,
                     "cantidadLamparas": 2,
                     "tipoLuminaria": "LED",
+                    "potenciaLuminaria": "150W",
                     "estadoLuminaria": "Todas Encienden",
                     "latitud": -31.420083,
                     "longitud": -64.188776,
@@ -37,6 +38,7 @@ class TestRelevamientoPayload(unittest.TestCase):
                     "numeroPoste": 2,
                     "cantidadLamparas": 1,
                     "tipoLuminaria": "Sodio Alta Presion (SAP)",
+                    "potenciaLuminaria": "100W",
                     "estadoLuminaria": "Apagada / Fuera de Servicio",
                     "latitud": -31.420450,
                     "longitud": -64.189100,
@@ -49,7 +51,7 @@ class TestRelevamientoPayload(unittest.TestCase):
             ]
         }
 
-        # Lista de 16 columnas del Modelo Plano Simplificado en Google Sheets
+        # Lista de 17 columnas del Modelo Plano en Google Sheets (incluye Potencia_Luminaria)
         self.expected_columns = [
             "ID_Registro",
             "Timestamp_Carga",
@@ -58,6 +60,7 @@ class TestRelevamientoPayload(unittest.TestCase):
             "Poste_Numero",
             "Cantidad_Lamparas",
             "Tipo_Luminaria",
+            "Potencia_Luminaria",
             "Estado_Luminaria",
             "Latitud_GPS",
             "Longitud_GPS",
@@ -86,7 +89,7 @@ class TestRelevamientoPayload(unittest.TestCase):
             self.assertNotIn("direccionReferencia", p)
 
     def test_postes_relevamiento(self):
-        """Verifica la integridad de cada poste relevado."""
+        """Verifica la integridad de cada poste relevado y valida campo potenciaLuminaria."""
         postes = self.sample_payload.get("postes", [])
         self.assertGreater(len(postes), 0, "Debe existir al menos 1 poste relevado")
         
@@ -96,6 +99,10 @@ class TestRelevamientoPayload(unittest.TestCase):
             self.assertIn(p.get("tipoLuminaria"), [
                 "LED", "Sodio Alta Presion (SAP)", "Vapor de Mercurio", "Mezcladora", "Otro"
             ])
+            # Validación de potencia (opcional o dentro de valores admitidos)
+            potencia = p.get("potenciaLuminaria", "")
+            self.assertIn(potencia, ["", "50W", "100W", "150W", "200W", "250W"],
+                          f"Potencia '{potencia}' no reconocida en catálogo")
             self.assertIn(p.get("estadoLuminaria"), [
                 "Todas Encienden", "Apagada / Fuera de Servicio", "Enciende Parcialmente",
                 "Titilando / Falla Balasto", "Tulipa / Artefacto Roto"
@@ -112,13 +119,12 @@ class TestRelevamientoPayload(unittest.TestCase):
                 self.assertTrue(-75.0 <= lng <= -50.0, f"Longitud {lng} fuera del rango argentino")
 
     def test_serializacion_plana_google_sheets(self):
-        """Simula la serialización de filas planas hacia Google Sheets y comprueba coincidencia de 16 columnas."""
+        """Simula la serialización de filas planas hacia Google Sheets y comprueba coincidencia de 17 columnas."""
         payload = self.sample_payload
         total_postes = len(payload["postes"])
         filas = []
 
         for p in payload["postes"]:
-            # Simular URLs de Drive para hasta 3 fotos
             fotos_urls = ["", "", ""]
             for i, f in enumerate(p.get("fotos", [])):
                 if i < 3:
@@ -126,12 +132,13 @@ class TestRelevamientoPayload(unittest.TestCase):
 
             fila = [
                 "mock-uuid-1234",
-                "2026-11-02 12:30:00",
+                "2026-11-03 12:30:00",
                 payload["fecha"],
                 str(payload["medidor"]),
                 p["numeroPoste"],
                 p["cantidadLamparas"],
                 p["tipoLuminaria"],
+                p.get("potenciaLuminaria", ""),
                 p["estadoLuminaria"],
                 p.get("latitud", ""),
                 p.get("longitud", ""),
@@ -147,6 +154,39 @@ class TestRelevamientoPayload(unittest.TestCase):
             filas.append(fila)
 
         self.assertEqual(len(filas), 2, "Deben generarse 2 filas planas para 2 postes relevados")
+
+    def test_schema_borrador_local_storage(self):
+        """Valida que la estructura del borrador para LocalStorage contenga todos los campos para restaurar la sesión."""
+        borrador = {
+            "fecha": "2026-11-03",
+            "medidor": "72677900",
+            "postes": [
+                {
+                    "id": "pole-1730640000000-123",
+                    "numero": 1,
+                    "cantidadLamparas": 2,
+                    "tipoLuminaria": "LED",
+                    "potenciaLuminaria": "150W",
+                    "estadoLuminaria": "Todas Encienden",
+                    "geo": {"lat": -31.420083, "lng": -64.188776, "acc": 8},
+                    "fotos": [
+                        {"base64": "data:image/jpeg;base64,...", "mimeType": "image/jpeg"},
+                        None,
+                        None
+                    ],
+                    "observaciones": "Poste restaurado desde borrador"
+                }
+            ],
+            "timestamp": 1730640000000
+        }
+        self.assertIn("fecha", borrador)
+        self.assertIn("medidor", borrador)
+        self.assertIn("postes", borrador)
+        self.assertEqual(len(borrador["postes"]), 1)
+        p = borrador["postes"][0]
+        self.assertEqual(p["potenciaLuminaria"], "150W")
+        self.assertIsNotNone(p["geo"]["lat"])
+        self.assertEqual(len(p["fotos"]), 3)
 
 if __name__ == "__main__":
     unittest.main()

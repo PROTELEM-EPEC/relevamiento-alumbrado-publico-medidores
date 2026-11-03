@@ -1,14 +1,16 @@
 <script>
   var APPS_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbxVGx8m5z6aRxQG7CJBp403RGS4e7jhpi__3OMvVQkZ3a8guJDd5CUlf7uI53R4N3qB/exec";
+  var STORAGE_KEY = "relevamiento_alumbrado_borrador_v1";
   var poleCounter = 0;
   var polesData = new Map();
+  var saveTimer = null;
 
   var svgPinJs = '<svg width="15" height="15" viewBox="0 0 24 24" fill="currentColor" style="vertical-align:middle; display:inline-block;"><path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5a2.5 2.5 0 0 1 0-5 2.5 2.5 0 0 1 0 5z"/></svg>';
   var svgTrashJs = '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:middle; display:inline-block;"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path></svg>';
   var svgCameraJs = '<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:middle; display:inline-block;"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"></path><circle cx="12" cy="13" r="4"></circle></svg>';
   var svgGpsJs = '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:middle; display:inline-block;"><polygon points="12 2 19 21 12 17 5 21 12 2"></polygon></svg>';
 
-  // Funcion de inicializacion robusta
+  // Funcion de inicializacion robusta con recuperacion de borrador
   function initApp() {
     try {
       var fechaInput = document.getElementById("field-fecha");
@@ -19,7 +21,10 @@
 
       var btnAdd = document.getElementById("btn-add-pole");
       if (btnAdd) {
-        btnAdd.onclick = agregarPoste;
+        btnAdd.onclick = function() {
+          agregarPoste();
+          guardarBorradorLocal();
+        };
       }
 
       var btnSubmit = document.querySelector(".btn-submit");
@@ -27,11 +32,38 @@
         btnSubmit.onclick = enviarRelevamiento;
       }
 
-      var container = document.getElementById("postes-container");
-      if (container && container.children.length === 0) {
-        agregarPoste();
+      // Delegar autoguardado en tiempo real en todo el formulario
+      var formEl = document.getElementById("form-relevamiento");
+      if (formEl) {
+        formEl.addEventListener("input", debouncedGuardarBorrador);
+        formEl.addEventListener("change", guardarBorradorLocal);
+      }
+
+      // Intentar recuperar borrador previo guardado en este navegador
+      var recuperado = recuperarBorradorLocal();
+      if (!recuperado) {
+        var container = document.getElementById("postes-container");
+        if (container && container.children.length === 0) {
+          agregarPoste();
+        }
       }
       actualizarResumenPostes();
+
+      // Aviso nativo ante cierre/recarga accidental si hay datos
+      window.addEventListener("beforeunload", function (e) {
+        try {
+          var raw = localStorage.getItem(STORAGE_KEY);
+          if (raw) {
+            var draft = JSON.parse(raw);
+            if (draft && (draft.medidor || (draft.postes && draft.postes.length > 0))) {
+              e.preventDefault();
+              e.returnValue = "Hay un relevamiento en curso cargado. Los datos estan resguardados en el borrador de su navegador.";
+              return e.returnValue;
+            }
+          }
+        } catch (err) {}
+      });
+
     } catch (err) {
       console.error("Error en initApp:", err);
     }
@@ -45,18 +77,164 @@
   }
   setTimeout(initApp, 200);
 
-  function agregarPoste() {
+  // Guardado persistente del borrador en localStorage
+  function guardarBorradorLocal() {
+    try {
+      var medidorInput = document.getElementById("field-medidor");
+      var fechaInput = document.getElementById("field-fecha");
+      var medidorVal = medidorInput ? medidorInput.value.trim() : "";
+      var fechaVal = fechaInput ? fechaInput.value : "";
+
+      var cards = document.querySelectorAll(".pole-card");
+      var postesArray = [];
+
+      cards.forEach(function (card, index) {
+        var poleId = card.id;
+        var memData = polesData.get(poleId) || {};
+
+        var lamparasEl = document.getElementById(poleId + "-lamparas");
+        var tipoEl = document.getElementById(poleId + "-tipo");
+        var potenciaEl = document.getElementById(poleId + "-potencia");
+        var estadoEl = document.getElementById(poleId + "-estado");
+        var obsEl = document.getElementById(poleId + "-obs");
+
+        var lamparas = lamparasEl ? (parseInt(lamparasEl.value) || 1) : 1;
+        var tipo = tipoEl ? tipoEl.value : "LED";
+        var potencia = potenciaEl ? potenciaEl.value : "";
+        var estado = estadoEl ? estadoEl.value : "Todas Encienden";
+        var obs = obsEl ? obsEl.value.trim() : "";
+
+        postesArray.push({
+          id: poleId,
+          numero: index + 1,
+          cantidadLamparas: lamparas,
+          tipoLuminaria: tipo,
+          potenciaLuminaria: potencia,
+          estadoLuminaria: estado,
+          geo: memData.geo || { lat: null, lng: null, acc: null },
+          fotos: memData.fotos || [null, null, null],
+          observaciones: obs
+        });
+      });
+
+      // Validar si hay contenido para guardar
+      var tieneDatos = medidorVal.length > 0 || postesArray.length > 1 ||
+        (postesArray.length === 1 && (
+          postesArray[0].cantidadLamparas > 1 ||
+          postesArray[0].potenciaLuminaria !== "" ||
+          postesArray[0].tipoLuminaria !== "LED" ||
+          postesArray[0].estadoLuminaria !== "Todas Encienden" ||
+          (postesArray[0].geo && postesArray[0].geo.lat !== null) ||
+          (postesArray[0].fotos && postesArray[0].fotos.some(function(f) { return f !== null; })) ||
+          postesArray[0].observaciones.length > 0
+        ));
+
+      if (!tieneDatos) {
+        return;
+      }
+
+      var draft = {
+        fecha: fechaVal,
+        medidor: medidorVal,
+        postes: postesArray,
+        timestamp: Date.now()
+      };
+
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(draft));
+    } catch (err) {
+      console.warn("Aviso: no se pudo guardar el borrador en localStorage:", err);
+    }
+  }
+
+  function debouncedGuardarBorrador() {
+    clearTimeout(saveTimer);
+    saveTimer = setTimeout(guardarBorradorLocal, 300);
+  }
+
+  // Recupera el relevamiento guardado si el navegador fue recargado
+  function recuperarBorradorLocal() {
+    try {
+      var raw = localStorage.getItem(STORAGE_KEY);
+      if (!raw) return false;
+      var draft = JSON.parse(raw);
+      if (!draft || !draft.postes || !Array.isArray(draft.postes) || draft.postes.length === 0) {
+        return false;
+      }
+
+      // Restaurar cabecera
+      if (draft.fecha) {
+        var fEl = document.getElementById("field-fecha");
+        if (fEl) fEl.value = draft.fecha;
+      }
+      if (draft.medidor) {
+        var mEl = document.getElementById("field-medidor");
+        if (mEl) mEl.value = draft.medidor;
+      }
+
+      var container = document.getElementById("postes-container");
+      if (!container) return false;
+      container.innerHTML = "";
+      polesData.clear();
+      poleCounter = 0;
+
+      // Reconstruir cada poste guardado
+      draft.postes.forEach(function (pData) {
+        agregarPoste(pData);
+      });
+
+      actualizarResumenPostes();
+
+      // Mostrar banner de borrador recuperado
+      var aviso = document.getElementById("aviso-borrador");
+      if (aviso) {
+        aviso.classList.remove("hidden");
+      }
+      return true;
+    } catch (err) {
+      console.error("Error al recuperar borrador:", err);
+      return false;
+    }
+  }
+
+  function descartarBorrador() {
+    if (confirm("\u00bfDesea descartar el borrador recuperado e iniciar una nueva carga en blanco?")) {
+      limpiarBorradorLocal();
+      reiniciarFormulario();
+    }
+  }
+
+  function limpiarBorradorLocal() {
+    try {
+      localStorage.removeItem(STORAGE_KEY);
+      var aviso = document.getElementById("aviso-borrador");
+      if (aviso) {
+        aviso.classList.add("hidden");
+      }
+    } catch (err) {
+      console.warn("Aviso al limpiar borrador:", err);
+    }
+  }
+
+  function agregarPoste(initialData) {
     try {
       poleCounter++;
-      var poleId = "pole-" + Date.now() + "-" + Math.floor(Math.random() * 1000);
+      var poleId = (initialData && initialData.id) ? initialData.id : ("pole-" + Date.now() + "-" + Math.floor(Math.random() * 1000));
       var currentCards = document.querySelectorAll(".pole-card");
-      var poleNumber = currentCards.length + 1;
+      var poleNumber = (initialData && initialData.numero) ? initialData.numero : (currentCards.length + 1);
+
+      var initLamparas = (initialData && initialData.cantidadLamparas) ? initialData.cantidadLamparas : 1;
+      var initTipo = (initialData && initialData.tipoLuminaria) ? initialData.tipoLuminaria : "LED";
+      var initPotencia = (initialData && initialData.potenciaLuminaria) ? initialData.potenciaLuminaria : "";
+      var initEstado = (initialData && initialData.estadoLuminaria) ? initialData.estadoLuminaria : "Todas Encienden";
+      var initObs = (initialData && initialData.observaciones) ? initialData.observaciones : "";
+      var initGeo = (initialData && initialData.geo) ? initialData.geo : { lat: null, lng: null, acc: null };
+      var initFotos = (initialData && initialData.fotos && Array.isArray(initialData.fotos)) ? initialData.fotos : [null, null, null];
 
       polesData.set(poleId, {
         id: poleId,
         numero: poleNumber,
-        fotos: [null, null, null],
-        geo: { lat: null, lng: null, acc: null }
+        fotos: initFotos,
+        geo: initGeo
       });
 
       var container = document.getElementById("postes-container");
@@ -84,28 +262,39 @@
         '  <label class="form-label">Cantidad de L&aacute;mparas Conectadas <span class="required">*</span></label>',
         '  <div class="counter-box">',
         '    <button type="button" class="btn-counter" onclick="ajustarContador(\'' + poleId + '\', -1)">-</button>',
-        '    <input type="number" class="form-input counter-input" id="' + poleId + '-lamparas" value="1" min="1" max="20" required>',
+        '    <input type="number" class="form-input counter-input" id="' + poleId + '-lamparas" value="' + initLamparas + '" min="1" max="20" required onchange="guardarBorradorLocal()">',
         '    <button type="button" class="btn-counter" onclick="ajustarContador(\'' + poleId + '\', 1)">+</button>',
         '  </div>',
         '</div>',
         '<div class="form-group">',
         '  <label class="form-label">Tipo / Tecnolog&iacute;a de Luminaria <span class="required">*</span></label>',
-        '  <select class="form-select" id="' + poleId + '-tipo" required>',
-        '    <option value="LED" selected>LED (Eficiente)</option>',
-        '    <option value="Sodio Alta Presion (SAP)">Sodio Alta Presi&oacute;n (SAP - Luz Naranja)</option>',
-        '    <option value="Vapor de Mercurio">Vapor de Mercurio (Luz Blanca)</option>',
-        '    <option value="Mezcladora">L&aacute;mpara Mezcladora</option>',
-        '    <option value="Otro">Otra / No identificada</option>',
+        '  <select class="form-select" id="' + poleId + '-tipo" required onchange="guardarBorradorLocal()">',
+        '    <option value="LED"' + (initTipo === 'LED' ? ' selected' : '') + '>LED (Eficiente)</option>',
+        '    <option value="Sodio Alta Presion (SAP)"' + (initTipo === 'Sodio Alta Presion (SAP)' ? ' selected' : '') + '>Sodio Alta Presi&oacute;n (SAP - Luz Naranja)</option>',
+        '    <option value="Vapor de Mercurio"' + (initTipo === 'Vapor de Mercurio' ? ' selected' : '') + '>Vapor de Mercurio (Luz Blanca)</option>',
+        '    <option value="Mezcladora"' + (initTipo === 'Mezcladora' ? ' selected' : '') + '>L&aacute;mpara Mezcladora</option>',
+        '    <option value="Otro"' + (initTipo === 'Otro' ? ' selected' : '') + '>Otra / No identificada</option>',
+        '  </select>',
+        '</div>',
+        '<div class="form-group">',
+        '  <label class="form-label">Potencia de la Luminaria <span style="font-size:0.75rem; font-weight:normal; color:#64748b;">(Opcional)</span></label>',
+        '  <select class="form-select" id="' + poleId + '-potencia" onchange="guardarBorradorLocal()">',
+        '    <option value=""' + (initPotencia === '' ? ' selected' : '') + '>No especificada</option>',
+        '    <option value="50W"' + (initPotencia === '50W' ? ' selected' : '') + '>50W</option>',
+        '    <option value="100W"' + (initPotencia === '100W' ? ' selected' : '') + '>100W</option>',
+        '    <option value="150W"' + (initPotencia === '150W' ? ' selected' : '') + '>150W</option>',
+        '    <option value="200W"' + (initPotencia === '200W' ? ' selected' : '') + '>200W</option>',
+        '    <option value="250W"' + (initPotencia === '250W' ? ' selected' : '') + '>250W</option>',
         '  </select>',
         '</div>',
         '<div class="form-group">',
         '  <label class="form-label">Estado Operativo de las L&aacute;mparas <span class="required">*</span></label>',
-        '  <select class="form-select" id="' + poleId + '-estado" required>',
-        '    <option value="Todas Encienden" selected>Todas Encienden Correctamente</option>',
-        '    <option value="Apagada / Fuera de Servicio">Apagada / Fuera de Servicio</option>',
-        '    <option value="Enciende Parcialmente">Enciende Parcialmente</option>',
-        '    <option value="Titilando / Falla Balasto">Titilando / Parpadeo Intermitente</option>',
-        '    <option value="Tulipa / Artefacto Roto">Tulipa o Carcasa Da&ntilde;ada</option>',
+        '  <select class="form-select" id="' + poleId + '-estado" required onchange="guardarBorradorLocal()">',
+        '    <option value="Todas Encienden"' + (initEstado === 'Todas Encienden' ? ' selected' : '') + '>Todas Encienden Correctamente</option>',
+        '    <option value="Apagada / Fuera de Servicio"' + (initEstado === 'Apagada / Fuera de Servicio' ? ' selected' : '') + '>Apagada / Fuera de Servicio</option>',
+        '    <option value="Enciende Parcialmente"' + (initEstado === 'Enciende Parcialmente' ? ' selected' : '') + '>Enciende Parcialmente</option>',
+        '    <option value="Titilando / Falla Balasto"' + (initEstado === 'Titilando / Falla Balasto' ? ' selected' : '') + '>Titilando / Parpadeo Intermitente</option>',
+        '    <option value="Tulipa / Artefacto Roto"' + (initEstado === 'Tulipa / Artefacto Roto' ? ' selected' : '') + '>Tulipa o Carcasa Da&ntilde;ada</option>',
         '  </select>',
         '</div>',
         '<div class="geo-box">',
@@ -113,7 +302,8 @@
         '    <span style="font-weight:700; font-size:0.85rem; color:#0f172a; display:flex; align-items:center; gap:4px;">',
         '      ' + svgPinJs + ' Ubicaci&oacute;n GPS del Poste',
         '    </span>',
-        '    <span class="gps-status" id="' + poleId + '-gps-status">Sin capturar</span>',
+        '    <span class="gps-status' + (initGeo && initGeo.lat ? (initGeo.acc <= 15 ? ' ok' : ' warn') : '') + '" id="' + poleId + '-gps-status">' +
+        (initGeo && initGeo.lat ? ('Precisi\u00f3n: \u00b1' + initGeo.acc + 'm') : 'Sin capturar') + '</span>',
         '  </div>',
         '  <button type="button" class="btn-gps" onclick="capturarGPS(\'' + poleId + '\')">',
         '    <span>' + svgGpsJs + '</span>',
@@ -122,56 +312,60 @@
         '  <div class="geo-coords-grid">',
         '    <div class="geo-coord-item">',
         '      <span class="label">Latitud</span>',
-        '      <span class="val" id="' + poleId + '-val-lat">--</span>',
+        '      <span class="val" id="' + poleId + '-val-lat">' + (initGeo && initGeo.lat ? Number(initGeo.lat).toFixed(6) : '--') + '</span>',
         '    </div>',
         '    <div class="geo-coord-item">',
         '      <span class="label">Longitud</span>',
-        '      <span class="val" id="' + poleId + '-val-lng">--</span>',
+        '      <span class="val" id="' + poleId + '-val-lng">' + (initGeo && initGeo.lng ? Number(initGeo.lng).toFixed(6) : '--') + '</span>',
         '    </div>',
         '    <div class="geo-coord-item">',
         '      <span class="label">Precisi&oacute;n</span>',
-        '      <span class="val" id="' + poleId + '-val-acc">--</span>',
+        '      <span class="val" id="' + poleId + '-val-acc">' + (initGeo && initGeo.acc ? (initGeo.acc + ' m') : '--') + '</span>',
         '    </div>',
-        '  </div>',
         '  </div>',
         '</div>',
         '<div class="photos-section">',
         '  <label class="form-label">Fotograf&iacute;as del Poste (Hasta 3 im&aacute;genes)</label>',
-        '  <div class="photos-grid">',
-        '    <div class="photo-slot" id="' + poleId + '-slot-0" onclick="dispararCamara(\'' + poleId + '\', 0)">',
-        '      <input type="file" id="' + poleId + '-file-0" accept="image/jpeg,image/png,image/webp,image/jpg" capture="environment" style="display:none" onchange="procesarFoto(\'' + poleId + '\', 0, event)">',
-        '      <div class="photo-slot-placeholder" id="' + poleId + '-ph-0">',
-        '        <span class="icon">' + svgCameraJs + '</span>',
-        '        <span class="text">Foto 1</span>',
-        '      </div>',
-        '    </div>',
-        '    <div class="photo-slot" id="' + poleId + '-slot-1" onclick="dispararCamara(\'' + poleId + '\', 1)">',
-        '      <input type="file" id="' + poleId + '-file-1" accept="image/jpeg,image/png,image/webp,image/jpg" capture="environment" style="display:none" onchange="procesarFoto(\'' + poleId + '\', 1, event)">',
-        '      <div class="photo-slot-placeholder" id="' + poleId + '-ph-1">',
-        '        <span class="icon">' + svgCameraJs + '</span>',
-        '        <span class="text">Foto 2</span>',
-        '      </div>',
-        '    </div>',
-        '    <div class="photo-slot" id="' + poleId + '-slot-2" onclick="dispararCamara(\'' + poleId + '\', 2)">',
-        '      <input type="file" id="' + poleId + '-file-2" accept="image/jpeg,image/png,image/webp,image/jpg" capture="environment" style="display:none" onchange="procesarFoto(\'' + poleId + '\', 2, event)">',
-        '      <div class="photo-slot-placeholder" id="' + poleId + '-ph-2">',
-        '        <span class="icon">' + svgCameraJs + '</span>',
-        '        <span class="text">Foto 3</span>',
-        '      </div>',
-        '    </div>',
+        '  <div class="photos-grid">'
+      ];
+
+      for (var sIdx = 0; sIdx < 3; sIdx++) {
+        var fotoObj = initFotos[sIdx];
+        if (fotoObj && fotoObj.base64) {
+          html.push(
+            '    <div class="photo-slot has-image" id="' + poleId + '-slot-' + sIdx + '" onclick="dispararCamara(\'' + poleId + '\', ' + sIdx + ')">',
+            '      <input type="file" id="' + poleId + '-file-' + sIdx + '" accept="image/jpeg,image/png,image/webp,image/jpg" capture="environment" style="display:none" onchange="procesarFoto(\'' + poleId + '\', ' + sIdx + ', event)">',
+            '      <img src="' + fotoObj.base64 + '" class="photo-preview">',
+            '      <button type="button" class="photo-delete-btn" onclick="eliminarFoto(\'' + poleId + '\', ' + sIdx + ', event)">&times;</button>',
+            '    </div>'
+          );
+        } else {
+          html.push(
+            '    <div class="photo-slot" id="' + poleId + '-slot-' + sIdx + '" onclick="dispararCamara(\'' + poleId + '\', ' + sIdx + ')">',
+            '      <input type="file" id="' + poleId + '-file-' + sIdx + '" accept="image/jpeg,image/png,image/webp,image/jpg" capture="environment" style="display:none" onchange="procesarFoto(\'' + poleId + '\', ' + sIdx + ', event)">',
+            '      <div class="photo-slot-placeholder" id="' + poleId + '-ph-' + sIdx + '">',
+            '        <span class="icon">' + svgCameraJs + '</span>',
+            '        <span class="text">Foto ' + (sIdx + 1) + '</span>',
+            '      </div>',
+            '    </div>'
+          );
+        }
+      }
+
+      html.push(
         '  </div>',
         '</div>',
         '<div class="form-group" style="margin-top:14px; margin-bottom:0;">',
         '  <label class="form-label">Observaciones Adicionales del Poste</label>',
-        '  <input type="text" class="form-input" id="' + poleId + '-obs" placeholder="Ej: Poste de hormig&oacute;n inclinado, ramas tocando l&iacute;nea, etc.">',
+        '  <input type="text" class="form-input" id="' + poleId + '-obs" value="' + (initObs ? initObs.replace(/"/g, '&quot;') : '') + '" placeholder="Ej: Poste de hormig&oacute;n inclinado, ramas tocando l&iacute;nea, etc." oninput="debouncedGuardarBorrador()" onchange="guardarBorradorLocal()">',
         '</div>'
-      ].join("\n");
+      );
 
-      poleCard.innerHTML = html;
+      poleCard.innerHTML = html.join("\n");
       container.appendChild(poleCard);
       actualizarResumenPostes();
 
-      if (poleNumber > 1) {
+      if (poleNumber > 1 && !initialData) {
         poleCard.scrollIntoView({ behavior: "smooth", block: "start" });
       }
     } catch (err) {
@@ -187,6 +381,7 @@
       polesData.delete(poleId);
       renumerarPostes();
       actualizarResumenPostes();
+      guardarBorradorLocal();
     }
   }
 
@@ -219,6 +414,7 @@
       var val = parseInt(input.value) || 1;
       val = Math.max(1, Math.min(20, val + delta));
       input.value = val;
+      guardarBorradorLocal();
     }
   }
 
@@ -260,6 +456,7 @@
         if (polesData.has(poleId)) {
           polesData.get(poleId).geo = { lat: lat, lng: lng, acc: acc };
         }
+        guardarBorradorLocal();
       },
       function (err) {
         statusElem.textContent = "Error GPS: " + err.message;
@@ -320,6 +517,8 @@
         slot.classList.add("has-image");
         slot.innerHTML = '<img src="' + compressedBase64 + '" class="photo-preview">' +
           '<button type="button" class="photo-delete-btn" onclick="eliminarFoto(\'' + poleId + '\', ' + slotIndex + ', event)">&times;</button>';
+        
+        guardarBorradorLocal();
       };
       img.src = e.target.result;
     };
@@ -339,6 +538,8 @@
       '<span class="icon">' + svgCameraJs + '</span>' +
       '<span class="text">Foto ' + (slotIndex + 1) + '</span>' +
       '</div>';
+    
+    guardarBorradorLocal();
   }
 
   function enviarRelevamiento() {
@@ -365,6 +566,8 @@
 
       var lamparas = parseInt(document.getElementById(poleId + "-lamparas").value) || 1;
       var tipo = document.getElementById(poleId + "-tipo").value;
+      var potenciaEl = document.getElementById(poleId + "-potencia");
+      var potencia = potenciaEl ? potenciaEl.value : "";
       var estado = document.getElementById(poleId + "-estado").value;
       var obs = document.getElementById(poleId + "-obs").value.trim();
 
@@ -374,6 +577,7 @@
         numeroPoste: index + 1,
         cantidadLamparas: lamparas,
         tipoLuminaria: tipo,
+        potenciaLuminaria: potencia,
         estadoLuminaria: estado,
         latitud: memData.geo ? memData.geo.lat : null,
         longitud: memData.geo ? memData.geo.lng : null,
@@ -429,6 +633,7 @@
   function onEnvioExitoso(resp) {
     document.getElementById("modal-spinner").classList.add("hidden");
     if (resp.success) {
+      limpiarBorradorLocal();
       document.getElementById("modal-title").innerHTML = "&iexcl;Carga Exitosa!";
       document.getElementById("modal-msg").innerHTML =
         "<strong>" + resp.message + "</strong><br><br>" +
@@ -462,6 +667,7 @@
     document.getElementById("postes-container").innerHTML = "";
     polesData.clear();
     poleCounter = 0;
+    limpiarBorradorLocal();
     var fechaInput = document.getElementById("field-fecha");
     if (fechaInput) {
       fechaInput.value = new Date().toISOString().split("T")[0];
@@ -480,4 +686,8 @@
   window.eliminarFoto = eliminarFoto;
   window.enviarRelevamiento = enviarRelevamiento;
   window.reiniciarFormulario = reiniciarFormulario;
+  window.guardarBorradorLocal = guardarBorradorLocal;
+  window.debouncedGuardarBorrador = debouncedGuardarBorrador;
+  window.descartarBorrador = descartarBorrador;
+  window.limpiarBorradorLocal = limpiarBorradorLocal;
 </script>

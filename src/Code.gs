@@ -58,7 +58,7 @@ function obtenerOCrearHojaCalculo() {
 
   }
 
-  // Encabezados del Modelo Plano Simplificado (1 fila por poste relevado - 16 columnas)
+  // Encabezados del Modelo Plano Simplificado (1 fila por poste relevado - 17 columnas)
   const encabezados = [
     "ID_Registro",
     "Timestamp_Carga",
@@ -67,6 +67,7 @@ function obtenerOCrearHojaCalculo() {
     "Poste_Numero",
     "Cantidad_Lamparas",
     "Tipo_Luminaria",
+    "Potencia_Luminaria",
     "Estado_Luminaria",
     "Latitud_GPS",
     "Longitud_GPS",
@@ -86,6 +87,22 @@ function obtenerOCrearHojaCalculo() {
     headerRange.setFontWeight("bold");
     headerRange.setHorizontalAlignment("center");
     sheet.setFrozenRows(1);
+  } else if (sheet.getLastColumn() === 16) {
+    // Migracion automatica transparente si la hoja existia previamente con 16 columnas
+    try {
+      const col8Header = sheet.getRange(1, 8).getValue();
+      if (col8Header === "Estado_Luminaria") {
+        sheet.insertColumnAfter(7);
+        const hCell = sheet.getRange(1, 8);
+        hCell.setValue("Potencia_Luminaria");
+        hCell.setBackground("#1a365d");
+        hCell.setFontColor("#ffffff");
+        hCell.setFontWeight("bold");
+        hCell.setHorizontalAlignment("center");
+      }
+    } catch (eCols) {
+      Logger.log("Aviso migracion columna Potencia_Luminaria: " + eCols.toString());
+    }
   }
 
   return { spreadsheet: spreadsheet, sheet: sheet };
@@ -172,9 +189,10 @@ function procesarRelevamiento(data) {
         }
       }
 
-      // Preparacion de fila plana (adaptable a hoja existente de 23 cols o nueva de 16 cols)
+      // Preparacion de fila plana (adaptable a 17 cols estandar, 16 cols previa o legado de 23 cols)
       let fila;
-      if (sheet.getLastColumn() === 23) {
+      const numCols = sheet.getLastColumn();
+      if (numCols === 23) {
         fila = [
           idRegistro,
           timestampNow,
@@ -195,7 +213,7 @@ function procesarRelevamiento(data) {
           p.observaciones || "",
           totalPostes
         ];
-      } else {
+      } else if (numCols === 16) {
         fila = [
           idRegistro,
           timestampNow,
@@ -204,6 +222,27 @@ function procesarRelevamiento(data) {
           numPoste,
           p.cantidadLamparas || 1,
           p.tipoLuminaria || "No especificado",
+          p.estadoLuminaria || "No especificado",
+          p.latitud !== undefined && p.latitud !== null ? p.latitud : "",
+          p.longitud !== undefined && p.longitud !== null ? p.longitud : "",
+          p.precision !== undefined && p.precision !== null ? p.precision : "",
+          fotoUrls[0],
+          fotoUrls[1],
+          fotoUrls[2],
+          p.observaciones || "",
+          totalPostes
+        ];
+      } else {
+        // Modelo estandar actualizado de 17 columnas con Potencia_Luminaria
+        fila = [
+          idRegistro,
+          timestampNow,
+          data.fecha || Utilities.formatDate(new Date(), "America/Argentina/Cordoba", "yyyy-MM-dd"),
+          String(data.medidor).trim(),
+          numPoste,
+          p.cantidadLamparas || 1,
+          p.tipoLuminaria || "No especificado",
+          p.potenciaLuminaria || "",
           p.estadoLuminaria || "No especificado",
           p.latitud !== undefined && p.latitud !== null ? p.latitud : "",
           p.longitud !== undefined && p.longitud !== null ? p.longitud : "",

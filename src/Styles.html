@@ -595,4 +595,39 @@
   .hidden {
     display: none !important;
   }
+  /* Alerta de borrador recuperado */
+  .draft-alert {
+    background: #f0f9ff;
+    border: 1px solid #bae6fd;
+    border-left: 4px solid var(--primary);
+    border-radius: var(--radius-md);
+    padding: 12px 14px;
+    margin-bottom: 16px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 10px;
+    font-size: 0.85rem;
+    color: #0369a1;
+    box-shadow: var(--shadow-sm);
+  }
+
+  .btn-discard-draft {
+    background: #ffffff;
+    border: 1px solid #0284c7;
+    color: #0284c7;
+    border-radius: 6px;
+    padding: 6px 12px;
+    font-size: 0.78rem;
+    font-weight: 700;
+    cursor: pointer;
+    white-space: nowrap;
+    transition: all 0.15s;
+  }
+
+  .btn-discard-draft:hover {
+    background: #0284c7;
+    color: #ffffff;
+  }
+
 </style>
