@@ -1,19 +1,57 @@
 /**
  * ==============================================================================
  * SISTEMA DE RELEVAMIENTO DE ALUMBRADO PUBLICO VINCULADO A MEDIDORES
- * Google Apps Script Web App - Backend
+ * Google Apps Script Web App - Backend (Versión 2.1)
  * Cuenta: relevamientocontrolgestion@gmail.com
- * Organizacion: PROTELEM-EPEC
+ * Organización: PROTELEM-EPEC
  * ==============================================================================
  */
 
-// Constantes de configuracion
+// Constantes de configuración
 const NOMBRE_HOJA_CALCULO = "Relevamiento_Alumbrado_Publico";
 const NOMBRE_PESTANA = "Relevamientos_Plano";
 const NOMBRE_CARPETA_DRIVE = "Fotos_Relevamiento_Alumbrado";
 
 /**
- * Punto de entrada HTTP GET: Sirve la aplicacion web responsiva para moviles.
+ * ==============================================================================
+ * 🚀 FUNCIÓN DE ACTUALIZACIÓN INMEDIATA: actualizarEstructuraColumnas()
+ * ------------------------------------------------------------------------------
+ * Para actualizar la planilla en Google Drive YA MISMO sin tener que esperar a
+ * enviar un relevamiento desde el celular:
+ * 1. Selecciona 'actualizarEstructuraColumnas' en la barra superior de Apps Script.
+ * 2. Haz clic en 'Ejecutar' (Run).
+ * 3. La columna 'Potencia_Luminaria' se insertará de inmediato con formato azul.
+ * ==============================================================================
+ */
+function actualizarEstructuraColumnas() {
+  Logger.log("=== INICIANDO ACTUALIZACION DE COLUMNAS EN GOOGLE SHEETS ===");
+  const ctx = obtenerOCrearHojaCalculo();
+  const totalCols = ctx.sheet.getLastColumn();
+  const headers = ctx.sheet.getRange(1, 1, 1, totalCols).getValues()[0];
+  
+  Logger.log("Planilla detectada: " + ctx.spreadsheet.getName());
+  Logger.log("Pestaña activa: " + ctx.sheet.getName());
+  Logger.log("Total columnas actuales: " + totalCols);
+  Logger.log("Encabezados presentes: " + JSON.stringify(headers));
+  
+  const tienePotencia = headers.indexOf("Potencia_Luminaria") !== -1;
+  if (tienePotencia) {
+    Logger.log("✅ La columna 'Potencia_Luminaria' ya se encuentra presente en la posición " + (headers.indexOf("Potencia_Luminaria") + 1));
+  } else {
+    Logger.log("⚠️ Columna 'Potencia_Luminaria' no detectada. Se procederá a insertarla.");
+  }
+  
+  return {
+    success: true,
+    totalColumnas: totalCols,
+    tienePotencia: tienePotencia,
+    posicionPotencia: headers.indexOf("Potencia_Luminaria") + 1,
+    url: ctx.spreadsheet.getUrl()
+  };
+}
+
+/**
+ * Punto de entrada HTTP GET: Sirve la aplicación web responsiva para móviles.
  */
 function doGet(e) {
   const template = HtmlService.createTemplateFromFile("Index");
@@ -24,14 +62,14 @@ function doGet(e) {
 }
 
 /**
- * Funcion auxiliar para incluir archivos HTML parciales si se utiliza estructura modular.
+ * Función auxiliar para incluir archivos HTML parciales si se utiliza estructura modular.
  */
 function include(filename) {
   return HtmlService.createHtmlOutputFromFile(filename).getContent();
 }
 
 /**
- * Obtiene o crea la planilla de Google Sheets centralizada.
+ * Obtiene o crea la planilla de Google Sheets centralizada y garantiza la columna Potencia_Luminaria.
  */
 function obtenerOCrearHojaCalculo() {
   const files = DriveApp.getFilesByName(NOMBRE_HOJA_CALCULO);
@@ -46,7 +84,7 @@ function obtenerOCrearHojaCalculo() {
   let sheet = spreadsheet.getSheetByName(NOMBRE_PESTANA);
   if (!sheet) {
     sheet = spreadsheet.insertSheet(NOMBRE_PESTANA);
-    // Eliminar Sheet1 por defecto si existe y no es la unica
+    // Eliminar Sheet1 por defecto si existe y no es la única
     const sheets = spreadsheet.getSheets();
     for (let i = 0; i < sheets.length; i++) {
       if (sheets[i].getName() === "Hoja 1" || sheets[i].getName() === "Sheet1") {
@@ -55,11 +93,10 @@ function obtenerOCrearHojaCalculo() {
         }
       }
     }
-
   }
 
-  // Encabezados del Modelo Plano Simplificado (1 fila por poste relevado - 17 columnas)
-  const encabezados = [
+  // Encabezados del Modelo Plano Oficial (17 columnas)
+  const encabezadosOficiales = [
     "ID_Registro",
     "Timestamp_Carga",
     "Fecha_Relevamiento",
@@ -80,28 +117,54 @@ function obtenerOCrearHojaCalculo() {
   ];
 
   if (sheet.getLastRow() === 0) {
-    sheet.appendRow(encabezados);
-    const headerRange = sheet.getRange(1, 1, 1, encabezados.length);
+    // Si la hoja está totalmente vacía, creamos los 17 encabezados oficiales
+    sheet.appendRow(encabezadosOficiales);
+    const headerRange = sheet.getRange(1, 1, 1, encabezadosOficiales.length);
     headerRange.setBackground("#1a365d");
     headerRange.setFontColor("#ffffff");
     headerRange.setFontWeight("bold");
     headerRange.setHorizontalAlignment("center");
     sheet.setFrozenRows(1);
-  } else if (sheet.getLastColumn() === 16) {
-    // Migracion automatica transparente si la hoja existia previamente con 16 columnas
+    Logger.log("Hoja creada desde cero con los 17 encabezados oficiales.");
+  } else {
+    // La hoja ya tiene datos o encabezados previos: migración transparente no destructiva
     try {
-      const col8Header = sheet.getRange(1, 8).getValue();
-      if (col8Header === "Estado_Luminaria") {
-        sheet.insertColumnAfter(7);
-        const hCell = sheet.getRange(1, 8);
-        hCell.setValue("Potencia_Luminaria");
-        hCell.setBackground("#1a365d");
-        hCell.setFontColor("#ffffff");
-        hCell.setFontWeight("bold");
-        hCell.setHorizontalAlignment("center");
+      const lastCol = sheet.getLastColumn();
+      if (lastCol > 0) {
+        const headers = sheet.getRange(1, 1, 1, lastCol).getValues()[0];
+        const tienePotencia = headers.indexOf("Potencia_Luminaria") !== -1;
+
+        if (!tienePotencia) {
+          Logger.log("Detectada hoja sin 'Potencia_Luminaria'. Procediendo a insertar columna...");
+          const idxTipo = headers.indexOf("Tipo_Luminaria");
+          const idxEstado = headers.indexOf("Estado_Luminaria");
+
+          let colDestino = 8;
+          if (idxTipo !== -1) {
+            // Insertar inmediatamente después de Tipo_Luminaria
+            sheet.insertColumnAfter(idxTipo + 1);
+            colDestino = idxTipo + 2;
+          } else if (idxEstado !== -1) {
+            // O inmediatamente antes de Estado_Luminaria
+            sheet.insertColumnBefore(idxEstado + 1);
+            colDestino = idxEstado + 1;
+          } else {
+            // Al final de las columnas existentes
+            sheet.insertColumnAfter(lastCol);
+            colDestino = lastCol + 1;
+          }
+
+          const hCell = sheet.getRange(1, colDestino);
+          hCell.setValue("Potencia_Luminaria");
+          hCell.setBackground("#1a365d");
+          hCell.setFontColor("#ffffff");
+          hCell.setFontWeight("bold");
+          hCell.setHorizontalAlignment("center");
+          Logger.log("Migración completada con éxito. 'Potencia_Luminaria' insertada en columna " + colDestino);
+        }
       }
     } catch (eCols) {
-      Logger.log("Aviso migracion columna Potencia_Luminaria: " + eCols.toString());
+      Logger.log("Aviso en verificación de columnas: " + eCols.toString());
     }
   }
 
@@ -109,7 +172,7 @@ function obtenerOCrearHojaCalculo() {
 }
 
 /**
- * Obtiene o crea la carpeta raiz en Google Drive para almacenar las fotos.
+ * Obtiene o crea la carpeta raíz en Google Drive para almacenar las fotos.
  */
 function obtenerOCrearCarpetaDrive() {
   const folders = DriveApp.getFoldersByName(NOMBRE_CARPETA_DRIVE);
@@ -120,7 +183,7 @@ function obtenerOCrearCarpetaDrive() {
 }
 
 /**
- * Obtiene o crea una subcarpeta especifica para el relevamiento del medidor.
+ * Obtiene o crea una subcarpeta específica para el relevamiento del medidor.
  */
 function obtenerSubcarpetaMedidor(carpetaRaiz, medidor, fecha) {
   const nombreSubcarpeta = "Medidor_" + medidor + "_" + fecha.replace(/-/g, "");
@@ -133,17 +196,18 @@ function obtenerSubcarpetaMedidor(carpetaRaiz, medidor, fecha) {
 
 /**
  * Procesa y registra el relevamiento completo enviado desde el formulario web.
+ * Mapea los valores dinámicamente según el nombre exacto de cada columna en la hoja.
  * @param {Object} data Datos estructurados con medidor, lecturas y array de postes.
- * @returns {Object} Respuesta con estado de exito o error.
+ * @returns {Object} Respuesta con estado de éxito o error.
  */
 function procesarRelevamiento(data) {
   try {
     if (!data || !data.medidor || !data.postes || !Array.isArray(data.postes) || data.postes.length === 0) {
-      throw new Error("Datos incompletos: se requiere numero de medidor y al menos un poste relevado.");
+      throw new Error("Datos incompletos: se requiere número de medidor y al menos un poste relevado.");
     }
 
     const lock = LockService.getScriptLock();
-    // Esperar hasta 30 segundos para evitar colisiones de escritura simultanea
+    // Esperar hasta 30 segundos para evitar colisiones de escritura simultánea
     lock.waitLock(30000);
 
     const sheetContext = obtenerOCrearHojaCalculo();
@@ -155,31 +219,28 @@ function procesarRelevamiento(data) {
     const totalPostes = data.postes.length;
     const filasAInsertar = [];
 
+    // Encabezados actuales en la hoja para mapeo dinámico inmune a desfasajes
+    const actualHeaders = sheet.getRange(1, 1, 1, sheet.getLastColumn()).getValues()[0];
+
     for (let i = 0; i < data.postes.length; i++) {
       const p = data.postes[i];
       const idRegistro = Utilities.getUuid();
-      const numPoste = p.numeroPoste || (i + 1);
+      const numPoste = i + 1;
 
-      // Procesamiento y guardado de imagenes en Google Drive
+      // Procesamiento seguro de imágenes Base64 hacia Drive
       const fotoUrls = ["", "", ""];
       if (p.fotos && Array.isArray(p.fotos)) {
         for (let j = 0; j < Math.min(p.fotos.length, 3); j++) {
-          const f = p.fotos[j];
-          if (f && f.base64) {
+          const rawBase64 = p.fotos[j];
+          if (rawBase64 && typeof rawBase64 === "string" && rawBase64.indexOf("base64,") !== -1) {
             try {
-              let base64Data = f.base64;
-              if (base64Data.indexOf("base64,") !== -1) {
-                base64Data = base64Data.split("base64,")[1];
-              }
-
-              const contentType = f.mimeType || "image/jpeg";
+              const base64Data = rawBase64.split("base64,")[1];
               const decodedBytes = Utilities.base64Decode(base64Data);
-              const nombreArchivo = "Medidor_" + data.medidor + "_Poste_" + numPoste + "_Foto_" + (j + 1) + "_" + Utilities.formatDate(new Date(), "America/Argentina/Cordoba", "HHmmss") + ".jpg";
-
-              const blob = Utilities.newBlob(decodedBytes, contentType, nombreArchivo);
+              const nombreArchivo = "Poste" + numPoste + "_Foto" + (j + 1) + "_" + Utilities.formatDate(new Date(), "America/Argentina/Cordoba", "yyyyMMdd_HHmmss") + ".jpg";
+              const blob = Utilities.newBlob(decodedBytes, "image/jpeg", nombreArchivo);
               const driveFile = subcarpeta.createFile(blob);
               
-              // Habilitar visualizacion de la imagen por enlace
+              // Habilitar visualización de la imagen por enlace
               driveFile.setSharing(DriveApp.Access.ANYONE_WITH_LINK, DriveApp.Permission.VIEW);
               fotoUrls[j] = driveFile.getUrl();
             } catch (errFoto) {
@@ -189,76 +250,45 @@ function procesarRelevamiento(data) {
         }
       }
 
-      // Preparacion de fila plana (adaptable a 17 cols estandar, 16 cols previa o legado de 23 cols)
-      let fila;
-      const numCols = sheet.getLastColumn();
-      if (numCols === 23) {
-        fila = [
-          idRegistro,
-          timestampNow,
-          data.fecha || Utilities.formatDate(new Date(), "America/Argentina/Cordoba", "yyyy-MM-dd"),
-          String(data.medidor).trim(),
-          "", "", "", "", "", // Lecturas E, EAR, EAP, EAV, ERT (removidas)
-          numPoste,
-          p.cantidadLamparas || 1,
-          p.tipoLuminaria || "No especificado",
-          p.estadoLuminaria || "No especificado",
-          p.latitud !== undefined && p.latitud !== null ? p.latitud : "",
-          p.longitud !== undefined && p.longitud !== null ? p.longitud : "",
-          p.precision !== undefined && p.precision !== null ? p.precision : "",
-          "", "", // Nomenclatura catastral y direccion (removidas)
-          fotoUrls[0],
-          fotoUrls[1],
-          fotoUrls[2],
-          p.observaciones || "",
-          totalPostes
-        ];
-      } else if (numCols === 16) {
-        fila = [
-          idRegistro,
-          timestampNow,
-          data.fecha || Utilities.formatDate(new Date(), "America/Argentina/Cordoba", "yyyy-MM-dd"),
-          String(data.medidor).trim(),
-          numPoste,
-          p.cantidadLamparas || 1,
-          p.tipoLuminaria || "No especificado",
-          p.estadoLuminaria || "No especificado",
-          p.latitud !== undefined && p.latitud !== null ? p.latitud : "",
-          p.longitud !== undefined && p.longitud !== null ? p.longitud : "",
-          p.precision !== undefined && p.precision !== null ? p.precision : "",
-          fotoUrls[0],
-          fotoUrls[1],
-          fotoUrls[2],
-          p.observaciones || "",
-          totalPostes
-        ];
-      } else {
-        // Modelo estandar actualizado de 17 columnas con Potencia_Luminaria
-        fila = [
-          idRegistro,
-          timestampNow,
-          data.fecha || Utilities.formatDate(new Date(), "America/Argentina/Cordoba", "yyyy-MM-dd"),
-          String(data.medidor).trim(),
-          numPoste,
-          p.cantidadLamparas || 1,
-          p.tipoLuminaria || "No especificado",
-          p.potenciaLuminaria || "",
-          p.estadoLuminaria || "No especificado",
-          p.latitud !== undefined && p.latitud !== null ? p.latitud : "",
-          p.longitud !== undefined && p.longitud !== null ? p.longitud : "",
-          p.precision !== undefined && p.precision !== null ? p.precision : "",
-          fotoUrls[0],
-          fotoUrls[1],
-          fotoUrls[2],
-          p.observaciones || "",
-          totalPostes
-        ];
-      }
+      // Mapa completo de campos por nombre de columna
+      const mapValores = {
+        "ID_Registro": idRegistro,
+        "Timestamp_Carga": timestampNow,
+        "Fecha_Relevamiento": data.fecha || Utilities.formatDate(new Date(), "America/Argentina/Cordoba", "yyyy-MM-dd"),
+        "Numero_Medidor": String(data.medidor).trim(),
+        "Poste_Numero": numPoste,
+        "Cantidad_Lamparas": p.cantidadLamparas || 1,
+        "Tipo_Luminaria": p.tipoLuminaria || "No especificado",
+        "Potencia_Luminaria": p.potenciaLuminaria || "",
+        "Estado_Luminaria": p.estadoLuminaria || "No especificado",
+        "Latitud_GPS": (p.latitud !== undefined && p.latitud !== null) ? p.latitud : "",
+        "Longitud_GPS": (p.longitud !== undefined && p.longitud !== null) ? p.longitud : "",
+        "Precision_GPS_m": (p.precision !== undefined && p.precision !== null) ? p.precision : "",
+        "Foto_1_URL": fotoUrls[0] || "",
+        "Foto_2_URL": fotoUrls[1] || "",
+        "Foto_3_URL": fotoUrls[2] || "",
+        "Observaciones_Poste": p.observaciones || "",
+        "Total_Postes_Medidor": totalPostes,
+        // Compatibilidad con legado v1.0 si estuvieran presentes
+        "Lectura_Energia_Activa_kWh": "",
+        "Lectura_Reactiva_kvarh": "",
+        "Potencia_Contratada_kW": "",
+        "Potencia_Leida_kW": "",
+        "Factor_Potencia_CosPhi": "",
+        "Nomenclatura_Catastral": "",
+        "Direccion_Aproximada": ""
+      };
+
+      // Inserción posicional exacta por coincidencia de nombre de encabezado
+      const fila = actualHeaders.map(function(headerName) {
+        const key = String(headerName).trim();
+        return mapValores.hasOwnProperty(key) ? mapValores[key] : "";
+      });
 
       filasAInsertar.push(fila);
     }
 
-    // Escritura masiva en una sola operacion atomica
+    // Escritura masiva en una sola operación atómica
     if (filasAInsertar.length > 0) {
       const nextRow = sheet.getLastRow() + 1;
       const range = sheet.getRange(nextRow, 1, filasAInsertar.length, filasAInsertar[0].length);
@@ -269,7 +299,7 @@ function procesarRelevamiento(data) {
 
     return {
       success: true,
-      message: "Relevamiento registrado con exito. Se cargaron " + totalPostes + " poste(s).",
+      message: "Relevamiento registrado con éxito. Se cargaron " + totalPostes + " poste(s).",
       totalPostes: totalPostes,
       sheetUrl: sheetContext.spreadsheet.getUrl(),
       folderUrl: subcarpeta.getUrl()
@@ -284,7 +314,7 @@ function procesarRelevamiento(data) {
 }
 
 /**
- * Funcion de prueba para verificar conectividad y creacion de componentes.
+ * Función de prueba para verificar conectividad y creación de componentes.
  */
 function testCrearEstructura() {
   const sheetContext = obtenerOCrearHojaCalculo();
@@ -294,7 +324,7 @@ function testCrearEstructura() {
 }
 
 /**
- * Punto de entrada HTTP POST: Permite envios via API REST o fetch desde cualquier origen.
+ * Punto de entrada HTTP POST: Permite envíos vía API REST o fetch desde cualquier origen.
  */
 function doPost(e) {
   try {
@@ -317,12 +347,11 @@ function doPost(e) {
   }
 }
 
-
 /**
- * Funcion utilitaria para actualizar los encabezados de la planilla al modelo limpio de 16 columnas.
- * Puede ejecutarse manualmente desde el editor de Apps Script si se desea resetear la cabecera.
+ * Función utilitaria si se desea resetear los encabezados completamente al modelo de 17 columnas.
+ * ATENCIÓN: Solo utilizar si se desea limpiar y reiniciar la planilla desde cero.
  */
-function actualizarEncabezadosANuevoModelo() {
+function resetearEncabezadosA17Columnas() {
   const sheetContext = obtenerOCrearHojaCalculo();
   const sheet = sheetContext.sheet;
   const encabezados = [
@@ -333,6 +362,7 @@ function actualizarEncabezadosANuevoModelo() {
     "Poste_Numero",
     "Cantidad_Lamparas",
     "Tipo_Luminaria",
+    "Potencia_Luminaria",
     "Estado_Luminaria",
     "Latitud_GPS",
     "Longitud_GPS",
@@ -351,5 +381,5 @@ function actualizarEncabezadosANuevoModelo() {
   headerRange.setFontWeight("bold");
   headerRange.setHorizontalAlignment("center");
   sheet.setFrozenRows(1);
-  Logger.log("Encabezados actualizados a 16 columnas con exito.");
+  Logger.log("Encabezados reiniciados a 17 columnas con éxito.");
 }
