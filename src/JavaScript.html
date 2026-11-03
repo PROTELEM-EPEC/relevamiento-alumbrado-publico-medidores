@@ -21,7 +21,7 @@
 
       var btnAdd = document.getElementById("btn-add-pole");
       if (btnAdd) {
-        btnAdd.onclick = function() {
+        btnAdd.onclick = function () {
           agregarPoste();
           guardarBorradorLocal();
         };
@@ -61,7 +61,7 @@
               return e.returnValue;
             }
           }
-        } catch (err) {}
+        } catch (err) { }
       });
 
     } catch (err) {
@@ -125,7 +125,7 @@
           postesArray[0].tipoLuminaria !== "LED" ||
           postesArray[0].estadoLuminaria !== "Todas Encienden" ||
           (postesArray[0].geo && postesArray[0].geo.lat !== null) ||
-          (postesArray[0].fotos && postesArray[0].fotos.some(function(f) { return f !== null; })) ||
+          (postesArray[0].fotos && postesArray[0].fotos.some(function (f) { return f !== null; })) ||
           postesArray[0].observaciones.length > 0
         ));
 
@@ -517,7 +517,7 @@
         slot.classList.add("has-image");
         slot.innerHTML = '<img src="' + compressedBase64 + '" class="photo-preview">' +
           '<button type="button" class="photo-delete-btn" onclick="eliminarFoto(\'' + poleId + '\', ' + slotIndex + ', event)">&times;</button>';
-        
+
         guardarBorradorLocal();
       };
       img.src = e.target.result;
@@ -538,7 +538,7 @@
       '<span class="icon">' + svgCameraJs + '</span>' +
       '<span class="text">Foto ' + (slotIndex + 1) + '</span>' +
       '</div>';
-    
+
     guardarBorradorLocal();
   }
 

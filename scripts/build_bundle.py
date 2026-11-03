@@ -27,3 +27,4 @@ with open(index_dst, "w", encoding="utf-8") as f:
     f.write(bundled)
 
 print(f"Bundled created successfully: {len(bundled)} chars in {bundle_dst} and {index_dst}")
+
