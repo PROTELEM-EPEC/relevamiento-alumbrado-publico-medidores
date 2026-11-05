@@ -1,7 +1,7 @@
 /**
  * ==============================================================================
  * SISTEMA DE RELEVAMIENTO DE ALUMBRADO PUBLICO VINCULADO A MEDIDORES
- * Google Apps Script Web App - Backend (Versión 2.1)
+ * Google Apps Script Web App - Backend (Versión 2.2 - Parche Polimórfico de Fotos)
  * Cuenta: relevamientocontrolgestion@gmail.com
  * Organización: PROTELEM-EPEC
  * ==============================================================================
@@ -227,23 +227,50 @@ function procesarRelevamiento(data) {
       const idRegistro = Utilities.getUuid();
       const numPoste = i + 1;
 
-      // Procesamiento seguro de imágenes Base64 hacia Drive
+      // Procesamiento seguro de imagenes Base64 hacia Drive (Soporte Polimorfico: Objeto o String)
       const fotoUrls = ["", "", ""];
       if (p.fotos && Array.isArray(p.fotos)) {
         for (let j = 0; j < Math.min(p.fotos.length, 3); j++) {
-          const rawBase64 = p.fotos[j];
-          if (rawBase64 && typeof rawBase64 === "string" && rawBase64.indexOf("base64,") !== -1) {
+          const itemFoto = p.fotos[j];
+          if (!itemFoto) continue;
+
+          let rawBase64 = "";
+          let contentType = "image/jpeg";
+
+          // 1. Soporte polimorfico: Si viene como Objeto {base64, mimeType} o como String plano
+          if (typeof itemFoto === "object" && itemFoto !== null) {
+            rawBase64 = itemFoto.base64 || "";
+            if (itemFoto.mimeType) {
+              contentType = itemFoto.mimeType;
+            }
+          } else if (typeof itemFoto === "string") {
+            rawBase64 = itemFoto;
+          }
+
+          // 2. Validacion y decodificacion Base64
+          if (rawBase64 && typeof rawBase64 === "string" && rawBase64.trim().length > 0) {
             try {
-              const base64Data = rawBase64.split("base64,")[1];
+              let base64Data = rawBase64.trim();
+              if (base64Data.indexOf("base64,") !== -1) {
+                base64Data = base64Data.split("base64,")[1];
+              }
+
               const decodedBytes = Utilities.base64Decode(base64Data);
-              const nombreArchivo = "Poste" + numPoste + "_Foto" + (j + 1) + "_" + Utilities.formatDate(new Date(), "America/Argentina/Cordoba", "yyyyMMdd_HHmmss") + ".jpg";
-              const blob = Utilities.newBlob(decodedBytes, "image/jpeg", nombreArchivo);
+              const sufijoHora = Utilities.formatDate(new Date(), "America/Argentina/Cordoba", "yyyyMMdd_HHmmss");
+              const nombreArchivo = "Medidor_" + data.medidor + "_Poste" + numPoste + "_Foto" + (j + 1) + "_" + sufijoHora + ".jpg";
+              const blob = Utilities.newBlob(decodedBytes, contentType, nombreArchivo);
               const driveFile = subcarpeta.createFile(blob);
-              
-              // Habilitar visualización de la imagen por enlace
-              driveFile.setSharing(DriveApp.Access.ANYONE_WITH_LINK, DriveApp.Permission.VIEW);
+
+              // Habilitar visualizacion de la imagen por enlace
+              try {
+                driveFile.setSharing(DriveApp.Access.ANYONE_WITH_LINK, DriveApp.Permission.VIEW);
+              } catch (eSharing) {
+                Logger.log("Aviso de permisos al compartir imagen: " + eSharing.toString());
+              }
+
               fotoUrls[j] = driveFile.getUrl();
             } catch (errFoto) {
+              Logger.log("Error al guardar foto " + (j + 1) + " del poste " + numPoste + ": " + errFoto.toString());
               fotoUrls[j] = "Error al guardar foto: " + errFoto.toString();
             }
           }
